@@ -19,13 +19,13 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
         }
     }
 
-    function resetInventory() {
+    /*function resetInventory() {
         if (window.confirm("Voulez-vous vraiment supprimer TOUS les produits et recommencer à zéro ?")) {
             updatePlants([])
             localStorage.removeItem('inventory')
         }
     }
-
+*/
     function getStockStatus(stock) {
         if (stock === 0) return { color: '#c62828', bg: '#ffebee', label: 'Rupture', icon: 'error' }
         if (stock <= 5) return { color: '#e65100', bg: '#fff3e0', label: `${stock} — Stock bas !`, icon: 'warning' }
