@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct, onExportData, onImportData }) {
+function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct, onResetInventory }) {
     const [editingProduct, setEditingProduct] = useState(null)
 
     function handleStockChange(id, delta) {
@@ -19,13 +19,6 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
         }
     }
 
-    /*function resetInventory() {
-        if (window.confirm("Voulez-vous vraiment supprimer TOUS les produits et recommencer à zéro ?")) {
-            updatePlants([])
-            localStorage.removeItem('inventory')
-        }
-    }
-*/
     function getStockStatus(stock) {
         if (stock === 0) return { color: '#c62828', bg: '#ffebee', label: 'Rupture', icon: 'error' }
         if (stock <= 5) return { color: '#e65100', bg: '#fff3e0', label: `${stock} — Stock bas !`, icon: 'warning' }
@@ -39,6 +32,15 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                     <span className="material-icons" style={{ verticalAlign: 'middle', marginRight: '10px' }}>inventory_2</span>
                     GESTION DES STOCKS
                 </h2>
+                {isAdmin && (
+                    <button 
+                        onClick={onResetInventory} 
+                        style={{ background: 'rgba(231, 76, 60, 0.1)', color: '#e74c3c', fontSize: '0.75rem', padding: '8px 15px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                        <span className="material-icons" style={{ verticalAlign: 'middle', fontSize: '16px' }}>delete_sweep</span>
+                        RÉINITIALISER
+                    </button>
+                )}
             </div>
 
             {/* Modal d'édition de produit */}

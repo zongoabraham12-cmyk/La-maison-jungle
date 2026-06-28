@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
-function Login({ onLogin, users, onRegister }) {
+function Login({ onLogin, users }) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const [mode, setMode] = useState('login') // 'login', 'recovery', or 'signup'
+    const [mode, setMode] = useState('login') // 'login', or 'recovery'
     
     // Recovery states
     const [recoveryUsername, setRecoveryUsername] = useState('')
@@ -12,13 +12,6 @@ function Login({ onLogin, users, onRegister }) {
     const [targetUser, setTargetUser] = useState(null)
     const [recoveryAnswer, setRecoveryAnswer] = useState('')
     const [revealedPassword, setRevealedPassword] = useState('')
-    
-    // Signup states
-    const [newUsername, setNewUsername] = useState('')
-    const [newPassword, setNewPassword] = useState('')
-    const [newQuestion, setNewQuestion] = useState('')
-    const [newAnswer, setNewAnswer] = useState('')
-    const [newRole, setNewRole] = useState('cashier')
     
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
@@ -39,29 +32,7 @@ function Login({ onLogin, users, onRegister }) {
         }
     }
 
-    function handleRegisterSubmit(e) {
-        e.preventDefault()
-        if (users.some(u => u.username.toLowerCase() === newUsername.toLowerCase().trim())) {
-            return setError('Ce nom d\'utilisateur existe déjà.')
-        }
 
-        onRegister({
-            username: newUsername.trim(),
-            password: newPassword,
-            question: newQuestion,
-            answer: newAnswer.toLowerCase().trim(),
-            role: newRole
-        })
-
-        setSuccess('Compte créé avec succès ! Connectez-vous.')
-        setMode('login')
-        setUsername(newUsername)
-        setNewUsername('')
-        setNewPassword('')
-        setNewQuestion('')
-        setNewAnswer('')
-        setNewRole('cashier')
-    }
 
     function handleRecoveryIdentify(e) {
         e.preventDefault()
@@ -256,48 +227,7 @@ function Login({ onLogin, users, onRegister }) {
                             </div>
                             <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>SE CONNECTER</button>
                         </form>
-                        <span className="forgot-link" onClick={() => toggleMode('signup')}>Créer un compte</span>
                         <span className="forgot-link" onClick={() => toggleMode('recovery')}>Mot de passe oublié ?</span>
-                    </>
-                )}
-
-                {mode === 'signup' && (
-                    <>
-                        <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600' }}>Nouvel Utilisateur</p>
-                        <form onSubmit={handleRegisterSubmit} autoComplete="on">
-                            <div className="login-input-group">
-                                <span className="material-icons input-icon">person</span>
-                                <input className="login-input" placeholder="Nom d'utilisateur" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} required autoComplete="username" />
-                            </div>
-                            <div className="login-input-group">
-                                <span className="material-icons input-icon">lock</span>
-                                <input className="login-input" type="password" placeholder="Mot de passe" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required autoComplete="new-password" />
-                            </div>
-                            <div className="login-input-group">
-                                <span className="material-icons input-icon">help</span>
-                                <input className="login-input" placeholder="Question secrète" value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} required />
-                            </div>
-                            <div className="login-input-group">
-                                <span className="material-icons input-icon">verified_user</span>
-                                <input className="login-input" placeholder="Votre réponse" value={newAnswer} onChange={(e) => setNewAnswer(e.target.value)} required />
-                            </div>
-                            <div className="login-input-group" style={{ position: 'relative' }}>
-                                <span className="material-icons input-icon">badge</span>
-                                <select 
-                                    className="login-input" 
-                                    value={newRole} 
-                                    onChange={(e) => setNewRole(e.target.value)}
-                                    required
-                                    style={{ width: '100%', appearance: 'none', WebkitAppearance: 'none', background: 'rgba(255, 255, 255, 0.8)' }}
-                                >
-                                    <option value="cashier">Caissier</option>
-                                    <option value="admin">Administrateur</option>
-                                </select>
-                                <span className="material-icons" style={{ position: 'absolute', right: '20px', top: '15px', color: 'var(--primary)', pointerEvents: 'none' }}>expand_more</span>
-                            </div>
-                            <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>S'INSCRIRE</button>
-                        </form>
-                        <span className="forgot-link" onClick={() => toggleMode('login')}>Déjà un compte ? Se connecter</span>
                     </>
                 )}
 

@@ -76,8 +76,28 @@ function App() {
     })
     const [customerName, setCustomerName] = useState('')
     const [users, setUsers] = useState(() => {
-        const rawUsers = getSavedData('users', [{ username: 'admin', password: 'admin', role: 'admin', question: 'Nom du créateur ?', answer: 'admin' }])
-        return rawUsers.map(u => {
+        const defaultUsers = [
+            { username: 'admin', password: 'admin', role: 'admin', question: 'Nom du créateur ?', answer: 'admin' },
+            { username: 'vendeuse', password: 'vendeuse', role: 'cashier', question: 'Nom de la vendeuse ?', answer: 'vendeuse' }
+        ]
+        const rawUsers = getSavedData('users', defaultUsers)
+        
+        let mergedUsers = [...rawUsers]
+        const hasAdmin = mergedUsers.some(u => u && u.username && u.username.toLowerCase() === 'admin')
+        const hasVendeuse = mergedUsers.some(u => u && u.username && u.username.toLowerCase() === 'vendeuse')
+        
+        if (!hasAdmin) {
+            mergedUsers.push(defaultUsers[0])
+        }
+        if (!hasVendeuse) {
+            mergedUsers.push(defaultUsers[1])
+        }
+        
+        // Verrouiller la liste aux deux seuls utilisateurs autorisés
+        const allowedUsernames = ['admin', 'vendeuse']
+        mergedUsers = mergedUsers.filter(u => u && u.username && allowedUsernames.includes(u.username.toLowerCase()))
+        
+        return mergedUsers.map(u => {
             if (u && !u.role) {
                 return { ...u, role: u.username.toLowerCase() === 'admin' ? 'admin' : 'cashier' }
             }
@@ -161,8 +181,67 @@ function App() {
         }
     }
 
-    function handleRegister(newUser) {
-        setUsers([...users, newUser])
+    function handleUpdateUserPassword(username, newPassword) {
+        setUsers(prev => prev.map(u => {
+            if (u.username.toLowerCase() === username.toLowerCase()) {
+                return { ...u, password: newPassword }
+            }
+            return u
+        }))
+        if (currentUser && currentUser.username.toLowerCase() === username.toLowerCase()) {
+            const updatedUser = { ...currentUser, password: newPassword }
+            setCurrentUser(updatedUser)
+            localStorage.setItem('currentUser', JSON.stringify(updatedUser))
+        }
+        alert(`Le mot de passe de ${username} a été mis à jour avec succès !`)
+    }
+
+    // Gestion de la licence d'essai de 30 jours
+    const [activationStatus, setActivationStatus] = useState(() => {
+        try {
+            const LICENSE_KEY = "VP-ACTIVATION-2026-OK"
+            const isActivated = localStorage.getItem('app_activated') === 'true'
+            
+            let trialStart = localStorage.getItem('trial_start')
+            if (!trialStart) {
+                trialStart = new Date().toISOString()
+                localStorage.setItem('trial_start', trialStart)
+            }
+            
+            const startDate = new Date(trialStart)
+            const today = new Date()
+            const diffTime = today - startDate
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+            
+            const daysLeft = Math.max(0, 30 - diffDays)
+            const isExpired = daysLeft <= 0 && !isActivated
+            
+            return {
+                isActivated,
+                daysLeft,
+                isExpired,
+                licenseKey: LICENSE_KEY
+            }
+        } catch (e) {
+            console.error("Error checking activation status:", e)
+            return { isActivated: false, daysLeft: 30, isExpired: false, licenseKey: "VP-ACTIVATION-2026-OK" }
+        }
+    })
+
+    function handleActivateApp(key) {
+        if (key.trim() === activationStatus.licenseKey) {
+            localStorage.setItem('app_activated', 'true')
+            setActivationStatus(prev => ({
+                ...prev,
+                isActivated: true,
+                isExpired: false
+            }))
+            alert("✅ Activation réussie ! Merci pour votre confiance.")
+            return true
+        } else {
+            alert("❌ Clé d'activation invalide. Veuillez réessayer.")
+            return false
+        }
     }
 
     // --- Export Backup (Admin) ---
@@ -216,8 +295,46 @@ function App() {
 
     const isAdmin = currentUser && currentUser.role === 'admin'
 
+    // Écran de blocage si la période d'essai est expirée et l'application n'est pas activée
+    if (activationStatus.isExpired) {
+        return (
+            <div className="login-overlay">
+                <div className="glass-card login-card animate-fade" style={{ maxWidth: '500px' }}>
+                    <div style={{ marginBottom: '20px' }}>
+                        <span className="material-icons" style={{ fontSize: '64px', color: '#e74c3c' }}>warning</span>
+                    </div>
+                    <h1 style={{ color: '#e74c3c', marginBottom: '10px', fontSize: '1.8rem', fontWeight: '900' }}>ESSAI EXPIRÉ</h1>
+                    <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600', lineHeight: '1.6' }}>
+                        Votre période d'essai gratuite de 1 mois (30 jours) est terminée. 
+                        Veuillez contacter le fournisseur de l'application pour acquérir une licence définitive et débloquer vos données.
+                    </p>
+                    <form onSubmit={(e) => {
+                        e.preventDefault()
+                        const data = new FormData(e.target)
+                        handleActivateApp(data.get('key'))
+                    }}>
+                        <div className="login-input-group" style={{ position: 'relative', marginBottom: '20px' }}>
+                            <span className="material-icons input-icon" style={{ position: 'absolute', left: '20px', top: '15px', color: 'var(--primary)' }}>vpn_key</span>
+                            <input 
+                                className="login-input" 
+                                name="key" 
+                                placeholder="Clé d'activation" 
+                                required 
+                                autoComplete="off" 
+                                style={{ width: '100%', padding: '15px 15px 15px 50px', border: '1px solid #ccc', borderRadius: '18px', background: 'rgba(255,255,255,0.8)' }}
+                            />
+                        </div>
+                        <button className="btn-primary" style={{ width: '100%', padding: '18px', background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)', boxShadow: '0 8px 20px rgba(231, 76, 60, 0.3)', marginTop: '10px' }}>
+                            ACTIVER L'APPLICATION
+                        </button>
+                    </form>
+                </div>
+            </div>
+        )
+    }
+
     if (!isLoggedIn) {
-        return <Login onLogin={handleLogin} users={users} onRegister={handleRegister} />
+        return <Login onLogin={handleLogin} users={users} />
     }
 
     return (
@@ -324,6 +441,7 @@ function App() {
                                 onAddClick={() => setModalOpen(true)}
                                 isAdmin={isAdmin}
                                 onUpdateProduct={handleUpdateProduct}
+                                onResetInventory={handleResetInventory}
                             />
                         ) : activeTab === 'history' ? (
                             <History salesHistory={salesHistory} isAdmin={isAdmin} onExportData={handleExportData} />
@@ -333,6 +451,9 @@ function App() {
                                 onImportData={handleImportData} 
                                 onResetInventory={handleResetInventory} 
                                 currentUser={currentUser} 
+                                activationStatus={activationStatus}
+                                onActivateApp={handleActivateApp}
+                                onUpdateUserPassword={handleUpdateUserPassword}
                             />
                         )}
                     </>

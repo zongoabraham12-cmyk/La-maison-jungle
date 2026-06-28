@@ -1,19 +1,102 @@
 import React from 'react'
 
-function Settings({ onExportData, onImportData, onResetInventory, currentUser }) {
+function Settings({ onExportData, onImportData, onResetInventory, currentUser, activationStatus, onActivateApp, onUpdateUserPassword }) {
     return (
         <div className="animate-fade" style={{ flex: 1, padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <div className="glass-card" style={{ marginBottom: '30px', padding: '20px 30px', hover: { transform: 'none' } }}>
+            <div className="glass-card" style={{ marginBottom: '30px', padding: '20px 30px' }}>
                 <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span className="material-icons">settings</span>
                     PARAMÈTRES ADMINISTRATEUR
                 </h2>
                 <p style={{ color: '#666', marginTop: '10px', fontSize: '0.9rem' }}>
-                    Espace réservé à la gestion globale des données de l'application. Ces options ne sont pas visibles par les caissiers.
+                    Espace réservé à la gestion globale des données et à la sécurité de l'application. Ces options ne sont pas visibles par les caissiers.
                 </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+            {/* Section Licence */}
+            <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
+                <h3 style={{ margin: '0 0 15px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
+                    <span className="material-icons">vpn_key</span>
+                    Statut de la Licence
+                </h3>
+                {activationStatus.isActivated ? (
+                    <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '15px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
+                        <span className="material-icons" style={{ fontSize: '24px' }}>check_circle</span>
+                        <span>VERSION ACTIVÉE DÉFINITIVEMENT</span>
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div style={{ background: '#fff3e0', color: '#e65100', padding: '15px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
+                            <span className="material-icons" style={{ fontSize: '24px' }}>hourglass_empty</span>
+                            <span>VERSION D'ESSAI : {activationStatus.daysLeft} JOURS RESTANTS</span>
+                        </div>
+                        <p style={{ color: '#666', fontSize: '0.85rem', margin: 0 }}>
+                            Saisissez la clé de licence définitive fournie pour débloquer l'application sans limite de temps.
+                        </p>
+                        <form 
+                            onSubmit={(e) => {
+                                e.preventDefault()
+                                const data = new FormData(e.target)
+                                if (onActivateApp(data.get('key'))) {
+                                    e.target.reset()
+                                }
+                            }}
+                            style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center' }}
+                        >
+                            <div className="input-group" style={{ flex: 1, minWidth: '250px', marginBottom: 0 }}>
+                                <span className="material-icons">vpn_key</span>
+                                <input name="key" placeholder="Entrez la clé d'activation" required style={{ width: '100%' }} />
+                            </div>
+                            <button type="submit" className="btn-primary" style={{ padding: '14px 24px', fontSize: '0.85rem' }}>ACTIVER</button>
+                        </form>
+                    </div>
+                )}
+            </div>
+
+            {/* Section Gestion des Comptes */}
+            <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
+                <h3 style={{ margin: '0 0 20px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
+                    <span className="material-icons">manage_accounts</span>
+                    Sécurité & Mots de Passe
+                </h3>
+                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                    {/* Changer mot de passe Admin */}
+                    <div style={{ flex: 1, minWidth: '280px', background: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '18px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <h4 style={{ margin: '0 0 15px 0', fontSize: '0.95rem', color: '#333' }}>Compte Administrateur (admin)</h4>
+                        <form onSubmit={(e) => {
+                            e.preventDefault()
+                            const data = new FormData(e.target)
+                            onUpdateUserPassword('admin', data.get('password'))
+                            e.target.reset()
+                        }}>
+                            <div className="input-group" style={{ marginBottom: '15px' }}>
+                                <span className="material-icons">lock</span>
+                                <input name="password" type="password" placeholder="Nouveau mot de passe" required style={{ width: '100%' }} />
+                            </div>
+                            <button className="btn-primary" style={{ width: '100%', padding: '10px', fontSize: '0.8rem' }}>Mettre à jour admin</button>
+                        </form>
+                    </div>
+
+                    {/* Changer mot de passe Vendeuse */}
+                    <div style={{ flex: 1, minWidth: '280px', background: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '18px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <h4 style={{ margin: '0 0 15px 0', fontSize: '0.95rem', color: '#333' }}>Compte Vendeuse (vendeuse)</h4>
+                        <form onSubmit={(e) => {
+                            e.preventDefault()
+                            const data = new FormData(e.target)
+                            onUpdateUserPassword('vendeuse', data.get('password'))
+                            e.target.reset()
+                        }}>
+                            <div className="input-group" style={{ marginBottom: '15px' }}>
+                                <span className="material-icons">lock</span>
+                                <input name="password" type="password" placeholder="Nouveau mot de passe" required style={{ width: '100%' }} />
+                            </div>
+                            <button className="btn-primary" style={{ width: '100%', padding: '10px', fontSize: '0.8rem' }}>Mettre à jour vendeuse</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '30px' }}>
                 {/* Carte Sauvegarde */}
                 <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <h3 style={{ margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
@@ -62,37 +145,9 @@ function Settings({ onExportData, onImportData, onResetInventory, currentUser })
                         <input type="file" accept=".json" onChange={onImportData} style={{ display: 'none' }} />
                     </label>
                 </div>
-
-                {/* Carte Danger Zone */}
-                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px', border: '1px solid rgba(231, 76, 60, 0.2)' }}>
-                    <h3 style={{ margin: 0, color: '#c62828', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
-                        <span className="material-icons">warning_amber</span>
-                        Zone de Danger
-                    </h3>
-                    <p style={{ color: '#666', fontSize: '0.85rem', flex: 1 }}>
-                        Supprimez définitivement tous les produits de votre stock et réinitialisez l'application. Cette action est irréversible.
-                    </p>
-                    <button 
-                        onClick={onResetInventory}
-                        style={{ 
-                            background: 'rgba(231, 76, 60, 0.1)', 
-                            color: '#e74c3c', 
-                            padding: '12px', 
-                            fontSize: '0.8rem', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            gap: '8px',
-                            border: '2px solid transparent'
-                        }}
-                    >
-                        <span className="material-icons">delete_forever</span>
-                        RÉINITIALISER TOUT LE STOCK
-                    </button>
-                </div>
             </div>
 
-            <div className="glass-card" style={{ marginTop: '30px', padding: '20px', textAlign: 'center' }}>
+            <div className="glass-card" style={{ padding: '20px', textAlign: 'center' }}>
                 <span style={{ fontSize: '0.8rem', color: '#999' }}>
                     Identifiant de session : <strong>{currentUser.username}</strong> | Rôle : <strong>{currentUser.role.toUpperCase()}</strong>
                 </span>
