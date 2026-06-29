@@ -1,9 +1,16 @@
 import React from 'react'
 
-function Receipt({ printData, isOpen, onClose }) {
+function Receipt({ printData, isOpen, onClose, receiptConfig }) {
     if (!isOpen || !printData) return null;
 
     const { cart, total, customerName, saleId, date } = printData;
+    const config = receiptConfig || {
+        storeName: 'VENTE PROS',
+        storeAddress: '',
+        storePhone: '',
+        storeSlogan: 'Expert en Solutions de Vente',
+        footerMessage: 'Merci de votre confiance ! À bientôt chez nous.'
+    }
 
     return (
         <div className="modal-overlay receipt-overlay">
@@ -11,9 +18,19 @@ function Receipt({ printData, isOpen, onClose }) {
                 <div id="receipt-container" style={{ fontFamily: "'Courier New', Courier, monospace", width: '100%', margin: '0 auto' }}>
                     {/* En-tête */}
                     <div style={{ textAlign: 'center', borderBottom: '2px dashed #000', paddingBottom: '15px', marginBottom: '15px' }}>
-                        <h1 style={{ margin: '0 0 5px 0', fontSize: '24px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>VENTE PROS</h1>
-                        <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#555' }}>Expert en Solutions de Vente</p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#333' }}>
+                        <h1 style={{ margin: '0 0 4px 0', fontSize: '22px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>
+                            {config.storeName}
+                        </h1>
+                        {config.storeSlogan && (
+                            <p style={{ margin: '0 0 5px 0', fontSize: '11px', color: '#555' }}>{config.storeSlogan}</p>
+                        )}
+                        {config.storeAddress && (
+                            <p style={{ margin: '0 0 3px 0', fontSize: '11px', color: '#444' }}>📍 {config.storeAddress}</p>
+                        )}
+                        {config.storePhone && (
+                            <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#444' }}>📞 {config.storePhone}</p>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#333', marginTop: '8px' }}>
                             <span>Ticket n° {saleId}</span>
                             <span>{date}</span>
                         </div>
@@ -51,8 +68,10 @@ function Receipt({ printData, isOpen, onClose }) {
 
                     {/* Pied de page */}
                     <div style={{ textAlign: 'center', fontSize: '11px', color: '#666', borderTop: '1px dashed #ccc', paddingTop: '15px' }}>
-                        <p style={{ margin: '3px 0' }}>Merci de votre confiance !</p>
-                        <p style={{ margin: '3px 0' }}>À bientôt chez VENTE PROS</p>
+                        {config.footerMessage && (
+                            <p style={{ margin: '3px 0', fontStyle: 'italic' }}>{config.footerMessage}</p>
+                        )}
+                        <p style={{ margin: '6px 0 0 0', fontSize: '10px', color: '#aaa' }}>— {config.storeName} —</p>
                     </div>
                 </div>
 

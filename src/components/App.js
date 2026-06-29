@@ -107,6 +107,13 @@ function App() {
 
     const [receiptData, setReceiptData] = useState(null)
     const [isReceiptOpen, setIsReceiptOpen] = useState(false)
+    const [receiptConfig, setReceiptConfig] = useState(() => getSavedData('receipt_config', {
+        storeName: 'VENTE PROS',
+        storeAddress: '',
+        storePhone: '',
+        storeSlogan: 'Expert en Solutions de Vente',
+        footerMessage: 'Merci de votre confiance ! À bientôt chez nous.'
+    }))
 
     // Sauvegardes automatiques
     useEffect(() => {
@@ -116,6 +123,10 @@ function App() {
     useEffect(() => {
         localStorage.setItem('sales_history', JSON.stringify(salesHistory))
     }, [salesHistory])
+
+    useEffect(() => {
+        localStorage.setItem('receipt_config', JSON.stringify(receiptConfig))
+    }, [receiptConfig])
 
     useEffect(() => {
         localStorage.setItem('users', JSON.stringify(users))
@@ -293,6 +304,19 @@ function App() {
         }
     }
 
+    function handleClearHistory() {
+        if (window.confirm("Voulez-vous vraiment supprimer TOUT l'historique des ventes ? Cette action est irréversible.")) {
+            setSalesHistory([])
+            localStorage.removeItem('sales_history')
+            alert("✅ Historique des ventes effacé avec succès.")
+        }
+    }
+
+    function handleUpdateReceiptConfig(newConfig) {
+        setReceiptConfig(newConfig)
+        alert("✅ Personnalisation du reçu enregistrée !")
+    }
+
     const isAdmin = currentUser && currentUser.role === 'admin'
 
     // Écran de blocage si la période d'essai est expirée et l'application n'est pas activée
@@ -449,11 +473,14 @@ function App() {
                             <Settings 
                                 onExportData={handleExportData} 
                                 onImportData={handleImportData} 
-                                onResetInventory={handleResetInventory} 
+                                onResetInventory={handleResetInventory}
+                                onClearHistory={handleClearHistory}
                                 currentUser={currentUser} 
                                 activationStatus={activationStatus}
                                 onActivateApp={handleActivateApp}
                                 onUpdateUserPassword={handleUpdateUserPassword}
+                                receiptConfig={receiptConfig}
+                                onUpdateReceiptConfig={handleUpdateReceiptConfig}
                             />
                         )}
                     </>
@@ -498,7 +525,8 @@ function App() {
             <Receipt 
                 printData={receiptData} 
                 isOpen={isReceiptOpen} 
-                onClose={handleCloseReceipt} 
+                onClose={handleCloseReceipt}
+                receiptConfig={receiptConfig}
             />
         </div>
     )

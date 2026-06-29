@@ -1,6 +1,23 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-function Settings({ onExportData, onImportData, onResetInventory, currentUser, activationStatus, onActivateApp, onUpdateUserPassword }) {
+function Settings({ onExportData, onImportData, onResetInventory, onClearHistory, currentUser, activationStatus, onActivateApp, onUpdateUserPassword, receiptConfig, onUpdateReceiptConfig }) {
+    const [localConfig, setLocalConfig] = useState(receiptConfig || {
+        storeName: 'VENTE PROS',
+        storeAddress: '',
+        storePhone: '',
+        storeSlogan: 'Expert en Solutions de Vente',
+        footerMessage: 'Merci de votre confiance ! À bientôt chez nous.'
+    })
+
+    function handleConfigChange(e) {
+        setLocalConfig(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    }
+
+    function handleConfigSubmit(e) {
+        e.preventDefault()
+        onUpdateReceiptConfig(localConfig)
+    }
+
     return (
         <div className="animate-fade" style={{ flex: 1, padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <div className="glass-card" style={{ marginBottom: '30px', padding: '20px 30px' }}>
@@ -53,11 +70,106 @@ function Settings({ onExportData, onImportData, onResetInventory, currentUser, a
                 )}
             </div>
 
+            {/* Section Personnalisation du Reçu */}
+            <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
+                <h3 style={{ margin: '0 0 20px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
+                    <span className="material-icons">receipt_long</span>
+                    Personnalisation du Reçu
+                </h3>
+                <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '20px', marginTop: 0 }}>
+                    Ces informations apparaîtront sur tous les reçus imprimés ou téléchargés.
+                </p>
+                <form onSubmit={handleConfigSubmit}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+                        <div>
+                            <label style={{ fontSize: '0.8rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                                Nom de la boutique *
+                            </label>
+                            <div className="input-group" style={{ marginBottom: 0 }}>
+                                <span className="material-icons">store</span>
+                                <input
+                                    name="storeName"
+                                    value={localConfig.storeName}
+                                    onChange={handleConfigChange}
+                                    placeholder="Ex: VENTE PROS"
+                                    required
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '0.8rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                                Slogan / Sous-titre
+                            </label>
+                            <div className="input-group" style={{ marginBottom: 0 }}>
+                                <span className="material-icons">format_quote</span>
+                                <input
+                                    name="storeSlogan"
+                                    value={localConfig.storeSlogan}
+                                    onChange={handleConfigChange}
+                                    placeholder="Ex: Expert en Solutions de Vente"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '0.8rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                                Adresse
+                            </label>
+                            <div className="input-group" style={{ marginBottom: 0 }}>
+                                <span className="material-icons">location_on</span>
+                                <input
+                                    name="storeAddress"
+                                    value={localConfig.storeAddress}
+                                    onChange={handleConfigChange}
+                                    placeholder="Ex: Rue du Commerce, Abidjan"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '0.8rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                                Téléphone
+                            </label>
+                            <div className="input-group" style={{ marginBottom: 0 }}>
+                                <span className="material-icons">phone</span>
+                                <input
+                                    name="storePhone"
+                                    value={localConfig.storePhone}
+                                    onChange={handleConfigChange}
+                                    placeholder="Ex: +225 07 00 00 00"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '6px' }}>
+                                Message de bas de reçu
+                            </label>
+                            <div className="input-group" style={{ marginBottom: 0 }}>
+                                <span className="material-icons">chat_bubble_outline</span>
+                                <input
+                                    name="footerMessage"
+                                    value={localConfig.footerMessage}
+                                    onChange={handleConfigChange}
+                                    placeholder="Ex: Merci de votre confiance !"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" className="btn-primary" style={{ padding: '12px 28px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="material-icons">save</span>
+                        ENREGISTRER LA PERSONNALISATION
+                    </button>
+                </form>
+            </div>
+
             {/* Section Gestion des Comptes */}
             <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
                 <h3 style={{ margin: '0 0 20px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
                     <span className="material-icons">manage_accounts</span>
-                    Sécurité & Mots de Passe
+                    Sécurité &amp; Mots de Passe
                 </h3>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     {/* Changer mot de passe Admin */}
@@ -101,7 +213,7 @@ function Settings({ onExportData, onImportData, onResetInventory, currentUser, a
                 <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <h3 style={{ margin: 0, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
                         <span className="material-icons">backup</span>
-                        Sauvegarde & Données
+                        Sauvegarde &amp; Données
                     </h3>
                     <p style={{ color: '#666', fontSize: '0.85rem', flex: 1 }}>
                         Téléchargez une copie complète de vos données (produits, stocks, historique et utilisateurs) pour la mettre en sécurité.
@@ -144,6 +256,38 @@ function Settings({ onExportData, onImportData, onResetInventory, currentUser, a
                         IMPORTER UN FICHIER
                         <input type="file" accept=".json" onChange={onImportData} style={{ display: 'none' }} />
                     </label>
+                </div>
+
+                {/* Carte Effacer l'Historique */}
+                <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <h3 style={{ margin: 0, color: '#c62828', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
+                        <span className="material-icons">delete_sweep</span>
+                        Effacer l'Historique
+                    </h3>
+                    <p style={{ color: '#666', fontSize: '0.85rem', flex: 1 }}>
+                        Supprime définitivement tout l'historique des ventes enregistrées. Cette action est irréversible. Pensez à exporter une sauvegarde avant.
+                    </p>
+                    <button 
+                        onClick={onClearHistory}
+                        style={{ 
+                            background: 'linear-gradient(135deg, #c62828, #e53935)',
+                            color: 'white',
+                            padding: '12px', 
+                            fontSize: '0.8rem', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            gap: '8px',
+                            border: 'none',
+                            borderRadius: '18px',
+                            cursor: 'pointer',
+                            fontWeight: '700',
+                            boxShadow: '0 8px 20px rgba(198, 40, 40, 0.3)'
+                        }}
+                    >
+                        <span className="material-icons">delete_forever</span>
+                        EFFACER L'HISTORIQUE
+                    </button>
                 </div>
             </div>
 
