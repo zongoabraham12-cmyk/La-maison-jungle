@@ -1,7 +1,7 @@
 import React from 'react'
 
 function ShoppingList({ plantList, cart, updateCart }) {
-    function addToCart(name, price, id, stock) {
+    function addToCart(name, price, id, stock, profit) {
         const currentPlantInCart = cart.find((plant) => plant.id === id)
         const currentAmount = currentPlantInCart ? currentPlantInCart.amount : 0
 
@@ -16,10 +16,10 @@ function ShoppingList({ plantList, cart, updateCart }) {
             )
             updateCart([
                 ...cartFilteredCurrentPlant,
-                { id, name, price, amount: currentAmount + 1 }
+                { id, name, price, profit: profit || 0, amount: currentAmount + 1 }
             ])
         } else {
-            updateCart([...cart, { id, name, price, amount: 1 }])
+            updateCart([...cart, { id, name, price, profit: profit || 0, amount: 1 }])
         }
     }
 
@@ -34,7 +34,7 @@ function ShoppingList({ plantList, cart, updateCart }) {
                         key={plant.id} 
                         className="glass-card animate-fade" 
                         style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
-                        onClick={() => addToCart(plant.name, plant.price, plant.id, plant.stock)}
+                        onClick={() => addToCart(plant.name, plant.price, plant.id, plant.stock, plant.profit)}
                     >
                         {plant.isSpecialOffer && (
                             <div style={{ 
@@ -75,4 +75,4 @@ function ShoppingList({ plantList, cart, updateCart }) {
     )
 }
 
-export default ShoppingList
+export default ShoppingList

@@ -58,6 +58,7 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                                 ...editingProduct,
                                 name: data.get('name'),
                                 price: parseInt(data.get('price')),
+                                profit: parseInt(data.get('profit')) || 0,
                                 stock: parseInt(data.get('stock')),
                                 category: data.get('category') || editingProduct.category || 'personnalisé'
                             })
@@ -70,6 +71,10 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                             <div className="input-group">
                                 <span className="material-icons">payments</span>
                                 <input name="price" type="number" defaultValue={editingProduct.price} placeholder="Prix de vente (FCFA)" required />
+                            </div>
+                            <div className="input-group">
+                                <span className="material-icons">trending_up</span>
+                                <input name="profit" type="number" defaultValue={editingProduct.profit || 0} placeholder="Bénéfice par unité (FCFA)" required />
                             </div>
                             <div className="input-group">
                                 <span className="material-icons">reorder</span>
@@ -109,6 +114,10 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                                     <h3 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.15rem', textTransform: 'capitalize' }}>{plant.name}</h3>
                                     {plant.category && <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '2px', textTransform: 'uppercase' }}>{plant.category}</div>}
                                     <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '6px' }}>{plant.price} FCFA</div>
+                                    <div style={{ fontSize: '0.85rem', color: '#2e7d32', fontWeight: '600', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span className="material-icons" style={{ fontSize: '14px' }}>trending_up</span>
+                                        Bénéfice : {plant.profit || 0} FCFA / u
+                                    </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '5px' }}>
                                     {isAdmin && (

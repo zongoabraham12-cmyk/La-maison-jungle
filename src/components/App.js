@@ -136,6 +136,7 @@ function App() {
         if (cart.length === 0) return alert("Rien à encaisser !")
 
         const total = cart.reduce((acc, item) => acc + item.amount * item.price, 0)
+        const totalProfit = cart.reduce((acc, item) => acc + item.amount * (item.profit || 0), 0)
         
         const newSale = {
             id: Math.floor(Math.random() * 9000) + 1000,
@@ -143,7 +144,8 @@ function App() {
             customerName: customerName,
             cashier: currentUser ? currentUser.username : 'admin',
             items: [...cart],
-            total: total
+            total: total,
+            totalProfit: totalProfit
         }
 
         const newPlants = plants.map(p => {
@@ -224,7 +226,7 @@ function App() {
             const diffTime = today - startDate
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
             
-            const daysLeft = Math.max(0, 30 - diffDays)
+            const daysLeft = Math.max(0, 7 - diffDays)
             const isExpired = daysLeft <= 0 && !isActivated
             
             return {
@@ -235,7 +237,7 @@ function App() {
             }
         } catch (e) {
             console.error("Error checking activation status:", e)
-            return { isActivated: false, daysLeft: 30, isExpired: false, licenseKey: "VP-ACTIVATION-2026-OK" }
+            return { isActivated: false, daysLeft: 7, isExpired: false, licenseKey: "VP-ACTIVATION-2026-OK" }
         }
     })
 
@@ -329,7 +331,7 @@ function App() {
                     </div>
                     <h1 style={{ color: '#e74c3c', marginBottom: '10px', fontSize: '1.8rem', fontWeight: '900' }}>ESSAI EXPIRÉ</h1>
                     <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600', lineHeight: '1.6' }}>
-                        Votre période d'essai gratuite de 1 mois (30 jours) est terminée. 
+                        Votre période d'essai gratuite de 1 semaine (7 jours) est terminée. 
                         Veuillez contacter le fournisseur de l'application pour acquérir une licence définitive et débloquer vos données.
                     </p>
                     <form onSubmit={(e) => {
@@ -358,7 +360,7 @@ function App() {
     }
 
     if (!isLoggedIn) {
-        return <Login onLogin={handleLogin} users={users} />
+        return <Login onLogin={handleLogin} users={users} onUpdateUserPassword={handleUpdateUserPassword} />
     }
 
     return (
@@ -497,6 +499,7 @@ function App() {
                             addProduct({
                                 name: data.get('name'),
                                 price: parseInt(data.get('price')),
+                                profit: parseInt(data.get('profit')) || 0,
                                 stock: parseInt(data.get('stock')),
                                 category: 'personnalisé'
                             })
@@ -508,6 +511,10 @@ function App() {
                             <div className="input-group">
                                 <span className="material-icons">payments</span>
                                 <input name="price" type="number" placeholder="Prix de vente (FCFA)" required />
+                            </div>
+                            <div className="input-group">
+                                <span className="material-icons">trending_up</span>
+                                <input name="profit" type="number" placeholder="Bénéfice par unité (FCFA)" required />
                             </div>
                             <div className="input-group">
                                 <span className="material-icons">reorder</span>

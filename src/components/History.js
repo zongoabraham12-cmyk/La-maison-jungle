@@ -6,6 +6,7 @@ function History({ salesHistory, isAdmin, onExportData }) {
 
     const totalRevenue = salesHistory.reduce((acc, sale) => acc + sale.total, 0)
     const totalTransactions = salesHistory.length
+    const totalProfit = salesHistory.reduce((acc, sale) => acc + (sale.totalProfit || 0), 0)
 
     // Filtrage des ventes
     const filteredSales = salesHistory.slice().reverse().filter(sale => {
@@ -31,16 +32,27 @@ function History({ salesHistory, isAdmin, onExportData }) {
 
     // Export CSV
     function handleExportCSV() {
+        const headers = ['Ticket', 'Date', 'Client', 'Caissier', 'Articles', 'Total (FCFA)']
+        if (isAdmin) {
+            headers.push('Bénéfice (FCFA)')
+        }
+        
         const rows = [
-            ['Ticket', 'Date', 'Client', 'Caissier', 'Articles', 'Total (FCFA)'],
-            ...salesHistory.map(sale => [
-                sale.id,
-                sale.date,
-                sale.customerName || 'N/A',
-                sale.cashier || 'admin',
-                sale.items.map(i => `${i.amount}x ${i.name}`).join(' | '),
-                sale.total
-            ])
+            headers,
+            ...salesHistory.map(sale => {
+                const row = [
+                    sale.id,
+                    sale.date,
+                    sale.customerName || 'N/A',
+                    sale.cashier || 'admin',
+                    sale.items.map(i => `${i.amount}x ${i.name}`).join(' | '),
+                    sale.total
+                ]
+                if (isAdmin) {
+                    row.push(sale.totalProfit || 0)
+                }
+                return row
+            })
         ]
         const csvContent = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n')
         const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -56,7 +68,7 @@ function History({ salesHistory, isAdmin, onExportData }) {
         <div className="animate-fade" style={{ flex: 1, padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', borderBottom: '2px solid var(--primary)', paddingBottom: '15px', marginBottom: '30px' }}>
                 <h2 style={{ color: 'var(--primary)', margin: 0 }}>
-                    Historique & Performance
+                    Historique &amp; Performance
                 </h2>
                 {isAdmin && salesHistory.length > 0 && (
                     <div style={{ display: 'flex', gap: '10px' }}>
@@ -77,6 +89,12 @@ function History({ salesHistory, isAdmin, onExportData }) {
                     <span className="stat-label">Chiffre d'Affaires</span>
                     <span className="stat-value">{totalRevenue.toLocaleString('fr-FR')} FCFA</span>
                 </div>
+                {isAdmin && (
+                    <div className="stat-card" style={{ background: 'white', color: '#2e7d32', border: '1px solid #e8f5e9' }}>
+                        <span className="stat-label" style={{ color: '#666' }}>Bénéfice Total</span>
+                        <span className="stat-value" style={{ color: '#2e7d32' }}>{totalProfit.toLocaleString('fr-FR')} FCFA</span>
+                    </div>
+                )}
                 <div className="stat-card" style={{ background: 'white', color: 'var(--primary)', border: '1px solid var(--primary-light)' }}>
                     <span className="stat-label" style={{ color: '#666' }}>Transactions</span>
                     <span className="stat-value">{totalTransactions}</span>
@@ -187,8 +205,15 @@ function History({ salesHistory, isAdmin, onExportData }) {
                                             : <span style={{ color: '#ccc', fontSize: '0.8rem' }}>—</span>
                                         }
                                     </td>
-                                    <td style={{ padding: '15px', textAlign: 'right', fontWeight: '800', color: 'var(--primary)' }}>
-                                        {sale.total.toLocaleString('fr-FR')} FCFA
+                                    <td style={{ padding: '15px', textAlign: 'right' }}>
+                                        <div style={{ fontWeight: '800', color: 'var(--primary)' }}>
+                                            {sale.total.toLocaleString('fr-FR')} FCFA
+                                        </div>
+                                        {isAdmin && (
+                                            <div style={{ fontSize: '0.78rem', color: '#2e7d32', fontWeight: '600', marginTop: '2px' }}>
+                                                Bénéfice: {(sale.totalProfit || 0).toLocaleString('fr-FR')} FCFA
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

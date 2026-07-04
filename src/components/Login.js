@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Login({ onLogin, users }) {
+function Login({ onLogin, users, onUpdateUserPassword }) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -8,10 +8,11 @@ function Login({ onLogin, users }) {
     
     // Recovery states
     const [recoveryUsername, setRecoveryUsername] = useState('')
-    const [recoveryStep, setRecoveryStep] = useState(1) // 1: identify user, 2: answer question
+    const [recoveryStep, setRecoveryStep] = useState(1) // 1: identify user, 2: answer question, 3: set new password
     const [targetUser, setTargetUser] = useState(null)
     const [recoveryAnswer, setRecoveryAnswer] = useState('')
-    const [revealedPassword, setRevealedPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmNewPassword, setConfirmNewPassword] = useState('')
     
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
@@ -32,8 +33,6 @@ function Login({ onLogin, users }) {
         }
     }
 
-
-
     function handleRecoveryIdentify(e) {
         e.preventDefault()
         const user = users.find(u => u.username.toLowerCase() === recoveryUsername.toLowerCase().trim())
@@ -49,11 +48,37 @@ function Login({ onLogin, users }) {
     function handleRecoveryVerify(e) {
         e.preventDefault()
         if (recoveryAnswer.toLowerCase().trim() === targetUser.answer.toLowerCase()) {
-            setRevealedPassword(targetUser.password)
+            setRecoveryStep(3)
             setError('')
         } else {
             setError('Réponse incorrecte.')
         }
+    }
+
+    function handleRecoveryResetPassword(e) {
+        e.preventDefault()
+        if (newPassword !== confirmNewPassword) {
+            setError('Les mots de passe ne correspondent pas.')
+            return
+        }
+        if (newPassword.length < 4) {
+            setError('Le mot de passe doit contenir au moins 4 caractères.')
+            return
+        }
+        
+        // Mettre à jour le mot de passe dans l'état global
+        onUpdateUserPassword(targetUser.username, newPassword)
+        
+        setSuccess(`Le mot de passe de ${targetUser.username} a été mis à jour avec succès !`)
+        setError('')
+        
+        // Retour au mode connexion
+        setMode('login')
+        setRecoveryStep(1)
+        setTargetUser(null)
+        setRecoveryAnswer('')
+        setNewPassword('')
+        setConfirmNewPassword('')
     }
 
     function toggleMode(newMode) {
@@ -62,7 +87,8 @@ function Login({ onLogin, users }) {
         setSuccess('')
         setRecoveryStep(1)
         setTargetUser(null)
-        setRevealedPassword('')
+        setNewPassword('')
+        setConfirmNewPassword('')
     }
 
     return (
@@ -233,14 +259,9 @@ function Login({ onLogin, users }) {
 
                 {mode === 'recovery' && (
                     <>
-                        <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600' }}>Récupération</p>
+                        <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600' }}>Récupération du compte</p>
                         
-                        {revealedPassword ? (
-                            <div className="login-success" style={{ padding: '20px' }}>
-                                Votre mot de passe est : <br/>
-                                <strong style={{ fontSize: '1.5rem', color: 'var(--primary)' }}>{revealedPassword}</strong>
-                            </div>
-                        ) : recoveryStep === 1 ? (
+                        {recoveryStep === 1 ? (
                             <form onSubmit={handleRecoveryIdentify}>
                                 <div className="login-input-group">
                                     <span className="material-icons input-icon">person</span>
@@ -248,7 +269,7 @@ function Login({ onLogin, users }) {
                                 </div>
                                 <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>SUIVANT</button>
                             </form>
-                        ) : (
+                        ) : recoveryStep === 2 ? (
                             <form onSubmit={handleRecoveryVerify}>
                                 <div style={{ textAlign: 'left', marginBottom: '15px' }}>
                                     <label style={{ fontSize: '0.9rem', color: '#666' }}>Question pour {targetUser.username} :</label>
@@ -259,6 +280,21 @@ function Login({ onLogin, users }) {
                                     <input className="login-input" placeholder="Votre réponse" value={recoveryAnswer} onChange={(e) => setRecoveryAnswer(e.target.value)} required />
                                 </div>
                                 <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>VÉRIFIER</button>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleRecoveryResetPassword}>
+                                <div style={{ textAlign: 'left', marginBottom: '15px' }}>
+                                    <p style={{ margin: '0 0 10px 0', fontWeight: '700', color: 'var(--primary)' }}>Saisissez votre nouveau mot de passe :</p>
+                                </div>
+                                <div className="login-input-group">
+                                    <span className="material-icons input-icon">lock</span>
+                                    <input className="login-input" type="password" placeholder="Nouveau mot de passe" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                                </div>
+                                <div className="login-input-group">
+                                    <span className="material-icons input-icon">lock_reset</span>
+                                    <input className="login-input" type="password" placeholder="Confirmer le nouveau mot de passe" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} required />
+                                </div>
+                                <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>ENREGISTRER LE NOUVEAU CODE</button>
                             </form>
                         )}
                         <span className="forgot-link" onClick={() => toggleMode('login')}>Retour à la connexion</span>
