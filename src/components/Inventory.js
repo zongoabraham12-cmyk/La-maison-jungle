@@ -114,10 +114,12 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                                     <h3 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.15rem', textTransform: 'capitalize' }}>{plant.name}</h3>
                                     {plant.category && <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '2px', textTransform: 'uppercase' }}>{plant.category}</div>}
                                     <div style={{ fontSize: '1.2rem', fontWeight: '800', marginTop: '6px' }}>{plant.price} FCFA</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#2e7d32', fontWeight: '600', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <span className="material-icons" style={{ fontSize: '14px' }}>trending_up</span>
-                                        Bénéfice : {plant.profit || 0} FCFA / u
-                                    </div>
+                                    {isAdmin && (
+                                        <div style={{ fontSize: '0.85rem', color: '#2e7d32', fontWeight: '600', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <span className="material-icons" style={{ fontSize: '14px' }}>trending_up</span>
+                                            Bénéfice : {plant.profit || 0} FCFA / u
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '5px' }}>
                                     {isAdmin && (
@@ -136,17 +138,21 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                             <div style={{ background: 'rgba(0,0,0,0.03)', padding: '15px', borderRadius: '18px', textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', color: '#666', marginBottom: '5px' }}>Stock Actuel</div>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-                                    <button 
-                                        onClick={() => handleStockChange(plant.id, -1)}
-                                        style={{ background: 'white', color: 'var(--primary)', width: '40px', height: '40px', padding: 0, borderRadius: '12px' }}
-                                    >-</button>
+                                    {isAdmin && (
+                                        <button 
+                                            onClick={() => handleStockChange(plant.id, -1)}
+                                            style={{ background: 'white', color: 'var(--primary)', width: '40px', height: '40px', padding: 0, borderRadius: '12px' }}
+                                        >-</button>
+                                    )}
                                     <span style={{ fontSize: '1.8rem', fontWeight: '800', minWidth: '60px', color: status.color }}>
                                         {plant.stock}
                                     </span>
-                                    <button 
-                                        onClick={() => handleStockChange(plant.id, 1)}
-                                        style={{ background: 'white', color: 'var(--primary)', width: '40px', height: '40px', padding: 0, borderRadius: '12px' }}
-                                    >+</button>
+                                    {isAdmin && (
+                                        <button 
+                                            onClick={() => handleStockChange(plant.id, 1)}
+                                            style={{ background: 'white', color: 'var(--primary)', width: '40px', height: '40px', padding: 0, borderRadius: '12px' }}
+                                        >+</button>
+                                    )}
                                 </div>
                                 <div style={{ marginTop: '8px', fontSize: '0.78rem', padding: '4px 12px', background: status.bg, color: status.color, borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                                     <span className="material-icons" style={{ fontSize: '14px' }}>{status.icon}</span>
@@ -159,9 +165,11 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
             </div>
 
             {/* Bouton flottant style Flutter */}
-            <button className="fab no-print" onClick={onAddClick}>
-                +
-            </button>
+            {isAdmin && (
+                <button className="fab no-print" onClick={onAddClick}>
+                    +
+                </button>
+            )}
         </div>
     )
 }
