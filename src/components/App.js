@@ -83,8 +83,8 @@ function App() {
         const rawUsers = getSavedData('users', defaultUsers)
         
         let mergedUsers = [...rawUsers]
-        const hasAdmin = mergedUsers.some(u => u && u.username && u.username.toLowerCase() === 'admin')
-        const hasVendeuse = mergedUsers.some(u => u && u.username && u.username.toLowerCase() === 'vendeuse')
+        const hasAdmin = mergedUsers.some(u => u && u.role === 'admin')
+        const hasVendeuse = mergedUsers.some(u => u && u.role === 'cashier')
         
         if (!hasAdmin) {
             mergedUsers.push(defaultUsers[0])
@@ -93,16 +93,10 @@ function App() {
             mergedUsers.push(defaultUsers[1])
         }
         
-        // Verrouiller la liste aux deux seuls utilisateurs autorisés
-        const allowedUsernames = ['admin', 'vendeuse']
-        mergedUsers = mergedUsers.filter(u => u && u.username && allowedUsernames.includes(u.username.toLowerCase()))
+        // Verrouiller la liste aux deux seuls rôles autorisés (un admin, une vendeuse)
+        mergedUsers = mergedUsers.filter(u => u && (u.role === 'admin' || u.role === 'cashier'))
         
-        return mergedUsers.map(u => {
-            if (u && !u.role) {
-                return { ...u, role: u.username.toLowerCase() === 'admin' ? 'admin' : 'cashier' }
-            }
-            return u
-        })
+        return mergedUsers
     })
 
     const [receiptData, setReceiptData] = useState(null)
@@ -194,19 +188,34 @@ function App() {
         }
     }
 
-    function handleUpdateUserPassword(username, newPassword) {
+    function handleUpdateUserProfile(role, newUsername, newPassword) {
+        if (!newUsername || !newUsername.trim()) {
+            alert("Le nom d'utilisateur ne peut pas être vide.")
+            return false
+        }
+        
+        const usernameTrimmed = newUsername.trim()
+        const isTaken = users.some(u => u.role !== role && u.username.toLowerCase() === usernameTrimmed.toLowerCase())
+        if (isTaken) {
+            alert("Ce nom d'utilisateur est déjà pris par l'autre compte.")
+            return false
+        }
+
         setUsers(prev => prev.map(u => {
-            if (u.username.toLowerCase() === username.toLowerCase()) {
-                return { ...u, password: newPassword }
+            if (u.role === role) {
+                return { ...u, username: usernameTrimmed, password: newPassword }
             }
             return u
         }))
-        if (currentUser && currentUser.username.toLowerCase() === username.toLowerCase()) {
-            const updatedUser = { ...currentUser, password: newPassword }
+
+        if (currentUser && currentUser.role === role) {
+            const updatedUser = { ...currentUser, username: usernameTrimmed, password: newPassword }
             setCurrentUser(updatedUser)
             localStorage.setItem('currentUser', JSON.stringify(updatedUser))
         }
-        alert(`Le mot de passe de ${username} a été mis à jour avec succès !`)
+        
+        alert("✅ Identifiants mis à jour avec succès !")
+        return true
     }
 
     // Gestion de la licence d'essai de 30 jours
@@ -360,7 +369,7 @@ function App() {
     }
 
     if (!isLoggedIn) {
-        return <Login onLogin={handleLogin} users={users} onUpdateUserPassword={handleUpdateUserPassword} />
+        return <Login onLogin={handleLogin} users={users} onUpdateUserProfile={handleUpdateUserProfile} />
     }
 
     return (
@@ -471,7 +480,6 @@ function App() {
                             />
                         ) : activeTab === 'history' ? (
                             <History salesHistory={salesHistory} isAdmin={isAdmin} onExportData={handleExportData} />
-                        ) : (
                             <Settings 
                                 onExportData={handleExportData} 
                                 onImportData={handleImportData} 
@@ -480,7 +488,8 @@ function App() {
                                 currentUser={currentUser} 
                                 activationStatus={activationStatus}
                                 onActivateApp={handleActivateApp}
-                                onUpdateUserPassword={handleUpdateUserPassword}
+                                users={users}
+                                onUpdateUserProfile={handleUpdateUserProfile}
                                 receiptConfig={receiptConfig}
                                 onUpdateReceiptConfig={handleUpdateReceiptConfig}
                             />

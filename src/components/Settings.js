@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-function Settings({ onExportData, onImportData, onResetInventory, onClearHistory, currentUser, activationStatus, onActivateApp, onUpdateUserPassword, receiptConfig, onUpdateReceiptConfig }) {
+function Settings({ onExportData, onImportData, onResetInventory, onClearHistory, currentUser, activationStatus, onActivateApp, users, onUpdateUserProfile, receiptConfig, onUpdateReceiptConfig }) {
     const [localConfig, setLocalConfig] = useState(receiptConfig || {
         storeName: 'VENTE PROS',
         storeAddress: '',
@@ -8,6 +8,9 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
         storeSlogan: 'Expert en Solutions de Vente',
         footerMessage: 'Merci de votre confiance ! À bientôt chez nous.'
     })
+
+    const adminUser = (users || []).find(u => u.role === 'admin') || { username: 'admin', password: 'admin' }
+    const cashierUser = (users || []).find(u => u.role === 'cashier') || { username: 'vendeuse', password: 'vendeuse' }
 
     function handleConfigChange(e) {
         setLocalConfig(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -169,38 +172,51 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
             <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
                 <h3 style={{ margin: '0 0 20px 0', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
                     <span className="material-icons">manage_accounts</span>
-                    Sécurité &amp; Mots de Passe
+                    Sécurité &amp; Profils Utilisateurs
                 </h3>
+                <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '20px', marginTop: 0 }}>
+                    Personnalisez les identifiants de connexion et les mots de passe des deux comptes.
+                </p>
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    {/* Changer mot de passe Admin */}
+                    {/* Changer profil Admin */}
                     <div style={{ flex: 1, minWidth: '280px', background: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '18px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                        <h4 style={{ margin: '0 0 15px 0', fontSize: '0.95rem', color: '#333' }}>Compte Administrateur (admin)</h4>
+                        <h4 style={{ margin: '0 0 15px 0', fontSize: '0.95rem', color: '#333' }}>Compte Administrateur</h4>
                         <form onSubmit={(e) => {
                             e.preventDefault()
                             const data = new FormData(e.target)
-                            onUpdateUserPassword('admin', data.get('password'))
-                            e.target.reset()
+                            onUpdateUserProfile('admin', data.get('username'), data.get('password'))
                         }}>
+                            <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Nom d'utilisateur</label>
+                            <div className="input-group" style={{ marginBottom: '12px' }}>
+                                <span className="material-icons">person</span>
+                                <input name="username" defaultValue={adminUser.username} placeholder="Username" required style={{ width: '100%' }} />
+                            </div>
+                            <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Mot de passe</label>
                             <div className="input-group" style={{ marginBottom: '15px' }}>
                                 <span className="material-icons">lock</span>
-                                <input name="password" type="password" placeholder="Nouveau mot de passe" required style={{ width: '100%' }} />
+                                <input name="password" type="password" defaultValue={adminUser.password} placeholder="Mot de passe" required style={{ width: '100%' }} />
                             </div>
                             <button className="btn-primary" style={{ width: '100%', padding: '10px', fontSize: '0.8rem' }}>Mettre à jour admin</button>
                         </form>
                     </div>
 
-                    {/* Changer mot de passe Vendeuse */}
+                    {/* Changer profil Vendeuse */}
                     <div style={{ flex: 1, minWidth: '280px', background: 'rgba(0,0,0,0.02)', padding: '20px', borderRadius: '18px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                        <h4 style={{ margin: '0 0 15px 0', fontSize: '0.95rem', color: '#333' }}>Compte Vendeuse (vendeuse)</h4>
+                        <h4 style={{ margin: '0 0 15px 0', fontSize: '0.95rem', color: '#333' }}>Compte Vendeuse</h4>
                         <form onSubmit={(e) => {
                             e.preventDefault()
                             const data = new FormData(e.target)
-                            onUpdateUserPassword('vendeuse', data.get('password'))
-                            e.target.reset()
+                            onUpdateUserProfile('cashier', data.get('username'), data.get('password'))
                         }}>
+                            <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Nom d'utilisateur</label>
+                            <div className="input-group" style={{ marginBottom: '12px' }}>
+                                <span className="material-icons">person</span>
+                                <input name="username" defaultValue={cashierUser.username} placeholder="Username" required style={{ width: '100%' }} />
+                            </div>
+                            <label style={{ fontSize: '0.75rem', color: '#666', fontWeight: '600', display: 'block', marginBottom: '4px' }}>Mot de passe</label>
                             <div className="input-group" style={{ marginBottom: '15px' }}>
                                 <span className="material-icons">lock</span>
-                                <input name="password" type="password" placeholder="Nouveau mot de passe" required style={{ width: '100%' }} />
+                                <input name="password" type="password" defaultValue={cashierUser.password} placeholder="Mot de passe" required style={{ width: '100%' }} />
                             </div>
                             <button className="btn-primary" style={{ width: '100%', padding: '10px', fontSize: '0.8rem' }}>Mettre à jour vendeuse</button>
                         </form>

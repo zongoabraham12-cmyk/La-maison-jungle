@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Login({ onLogin, users, onUpdateUserPassword }) {
+function Login({ onLogin, users, onUpdateUserProfile }) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
@@ -67,7 +67,7 @@ function Login({ onLogin, users, onUpdateUserPassword }) {
         }
         
         // Mettre à jour le mot de passe dans l'état global
-        onUpdateUserPassword(targetUser.username, newPassword)
+        onUpdateUserProfile(targetUser.role, targetUser.username, newPassword)
         
         setSuccess(`Le mot de passe de ${targetUser.username} a été mis à jour avec succès !`)
         setError('')
