@@ -480,6 +480,7 @@ function App() {
                             />
                         ) : activeTab === 'history' ? (
                             <History salesHistory={salesHistory} isAdmin={isAdmin} onExportData={handleExportData} />
+                        ) : (
                             <Settings 
                                 onExportData={handleExportData} 
                                 onImportData={handleImportData} 
