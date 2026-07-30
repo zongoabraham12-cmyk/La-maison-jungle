@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import Banner from './Banner'
+import Sidebar from './Sidebar'
+import Dashboard from './Dashboard'
 import Cart from './Cart'
 import ShoppingList from './ShoppingList'
 import Inventory from './Inventory'
@@ -51,7 +52,8 @@ function App() {
     const [plants, updatePlants] = useState(() => getSavedData('inventory', []))
     const [salesHistory, setSalesHistory] = useState(() => getSavedData('sales_history', []))
     const [cart, updateCart] = useState([])
-    const [activeTab, setActiveTab] = useState('sales')
+    const [activeTab, setActiveTab] = useState('dashboard')
+    const [sidebarOpen, setSidebarOpen] = useState(false)
     const [isModalOpen, setModalOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true')
@@ -373,131 +375,108 @@ function App() {
     }
 
     return (
-        <div>
-            <Banner 
-                isLoggedIn={isLoggedIn} 
+        <div className="app-layout">
+            <Sidebar 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                isAdmin={isAdmin} 
                 onLogout={handleLogout} 
-                onInstall={handleInstallApp}
+                currentUser={currentUser} 
+                onInstall={handleInstallApp} 
                 showInstallButton={!!deferredPrompt}
-                currentUser={currentUser}
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
             />
-            
-            <div className="tab-nav no-print">
-                <button 
-                    className={`tab-btn ${activeTab === 'sales' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('sales')}
-                    style={activeTab === 'sales' ? { boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)' } : {}}
-                >
-                    <span className="material-icons" style={{ verticalAlign: 'middle', marginRight: '8px' }}>shopping_cart</span>
-                    VENTES
-                </button>
-                <button 
-                    className={`tab-btn ${activeTab === 'stock' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('stock')}
-                    style={activeTab === 'stock' ? { boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)' } : {}}
-                >
-                    <span className="material-icons" style={{ verticalAlign: 'middle', marginRight: '8px' }}>inventory_2</span>
-                    STOCK
-                </button>
-                {isAdmin && (
-                    <>
-                        <button 
-                            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('history')}
-                            style={activeTab === 'history' ? { boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)' } : {}}
-                        >
-                            <span className="material-icons" style={{ verticalAlign: 'middle', marginRight: '8px' }}>history</span>
-                            HISTORIQUE
-                        </button>
-                        <button 
-                            className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('settings')}
-                            style={activeTab === 'settings' ? { boxShadow: '0 0 20px rgba(0, 255, 255, 0.3)' } : {}}
-                        >
-                            <span className="material-icons" style={{ verticalAlign: 'middle', marginRight: '8px' }}>settings</span>
-                            PARAMÈTRES
-                        </button>
-                    </>
-                )}
-            </div>
 
-            {activeTab !== 'history' && activeTab !== 'settings' && (plants || []).length > 0 && (
-                <div className="no-print" style={{ display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
-                    <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
-                        <span className="material-icons" style={{ position: 'absolute', left: '15px', top: '22px', color: '#999' }}>search</span>
-                        <input 
-                            type="text" 
-                            placeholder="Rechercher un produit..." 
-                            style={{ paddingLeft: '45px', borderRadius: '50px' }}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+            <div className="content-layout">
+                {/* Barre de recherche (visible sur les onglets sales ou stock) */}
+                {activeTab !== 'dashboard' && activeTab !== 'history' && activeTab !== 'settings' && (plants || []).length > 0 && (
+                    <div className="no-print" style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 20px 0' }}>
+                        <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
+                            <span className="material-icons" style={{ position: 'absolute', left: '15px', top: '14px', color: '#999' }}>search</span>
+                            <input 
+                                type="text" 
+                                placeholder="Rechercher un produit..." 
+                                style={{ paddingLeft: '45px', borderRadius: '50px', width: '100%', height: '48px' }}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <main style={{ minHeight: '100%' }}>
+                    {activeTab === 'dashboard' ? (
+                        <Dashboard 
+                            plants={plants} 
+                            salesHistory={salesHistory} 
+                            isAdmin={isAdmin} 
+                            setActiveTab={setActiveTab}
+                            setModalOpen={setModalOpen}
+                            onExportData={handleExportData}
                         />
-                    </div>
-                </div>
-            )}
-
-            <main className="main-container no-print">
-                {(plants || []).length === 0 && activeTab === 'sales' ? (
-                    <div className="glass-card animate-fade" style={{ flex: 1, textAlign: 'center', padding: '60px 20px', margin: '20px' }}>
-                        <span className="material-icons" style={{ fontSize: '64px', color: 'var(--primary)', marginBottom: '20px' }}>add_business</span>
-                        <h2>Bienvenue dans votre gestionnaire de vente !</h2>
-                        <p style={{ color: '#666', maxWidth: '500px', margin: '0 auto 30px auto' }}>
-                            Votre inventaire est vide. Pour commencer, allez dans l'onglet <strong>STOCK</strong> et cliquez sur le bouton <strong>"+"</strong> en bas à droite pour ajouter votre premier produit.
-                        </p>
-                        {activeTab === 'sales' && (
-                            <button className="btn-primary" onClick={() => setActiveTab('stock')}>Aller au Stock</button>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        {activeTab === 'sales' ? (
-                            <>
-                                <div className="cart-container" style={{ width: '350px' }}>
-                                    <Cart 
-                                        cart={cart} 
-                                        updateCart={updateCart} 
-                                        onPayment={handlePayment} 
-                                        customerName={customerName}
-                                        setCustomerName={setCustomerName}
-                                    />
+                    ) : (plants || []).length === 0 && activeTab === 'sales' ? (
+                        <div className="glass-card animate-fade" style={{ flex: 1, textAlign: 'center', padding: '60px 20px', margin: '20px' }}>
+                            <span className="material-icons" style={{ fontSize: '64px', color: 'var(--primary)', marginBottom: '20px' }}>add_business</span>
+                            <h2>Bienvenue dans votre gestionnaire de vente !</h2>
+                            <p style={{ color: '#666', maxWidth: '500px', margin: '0 auto 30px auto' }}>
+                                Votre inventaire est vide. Pour commencer, allez dans l'onglet <strong>STOCK</strong> et cliquez sur le bouton <strong>"+"</strong> en bas à droite pour ajouter votre premier produit.
+                            </p>
+                            {activeTab === 'sales' && (
+                                <button className="btn-primary" onClick={() => setActiveTab('stock')}>Aller au Stock</button>
+                            )}
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+                            {activeTab === 'sales' ? (
+                                <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap-reverse' }}>
+                                    <div className="cart-container" style={{ width: '350px', flexShrink: 0 }}>
+                                        <Cart 
+                                            cart={cart} 
+                                            updateCart={updateCart} 
+                                            onPayment={handlePayment} 
+                                            customerName={customerName}
+                                            setCustomerName={setCustomerName}
+                                        />
+                                    </div>
+                                    <div className="list-container" style={{ flex: 1, minWidth: '300px' }}>
+                                        <ShoppingList 
+                                            plantList={(plants || []).filter(p => p && p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
+                                            cart={cart} 
+                                            updateCart={updateCart} 
+                                        />
+                                    </div>
                                 </div>
-                                <div className="list-container" style={{ flex: 1 }}>
-                                    <ShoppingList 
-                                        plantList={(plants || []).filter(p => p && p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
-                                        cart={cart} 
-                                        updateCart={updateCart} 
-                                    />
-                                </div>
-                            </>
-                        ) : activeTab === 'stock' ? (
-                            <Inventory 
-                                plants={(plants || []).filter(p => p && p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
-                                updatePlants={updatePlants} 
-                                onAddClick={() => setModalOpen(true)}
-                                isAdmin={isAdmin}
-                                onUpdateProduct={handleUpdateProduct}
-                                onResetInventory={handleResetInventory}
-                            />
-                        ) : activeTab === 'history' ? (
-                            <History salesHistory={salesHistory} isAdmin={isAdmin} onExportData={handleExportData} />
-                        ) : (
-                            <Settings 
-                                onExportData={handleExportData} 
-                                onImportData={handleImportData} 
-                                onResetInventory={handleResetInventory}
-                                onClearHistory={handleClearHistory}
-                                currentUser={currentUser} 
-                                activationStatus={activationStatus}
-                                onActivateApp={handleActivateApp}
-                                users={users}
-                                onUpdateUserProfile={handleUpdateUserProfile}
-                                receiptConfig={receiptConfig}
-                                onUpdateReceiptConfig={handleUpdateReceiptConfig}
-                            />
-                        )}
-                    </>
-                )}
-            </main>
+                            ) : activeTab === 'stock' ? (
+                                <Inventory 
+                                    plants={(plants || []).filter(p => p && p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
+                                    updatePlants={updatePlants} 
+                                    onAddClick={() => setModalOpen(true)}
+                                    isAdmin={isAdmin}
+                                    onUpdateProduct={handleUpdateProduct}
+                                    onResetInventory={handleResetInventory}
+                                />
+                            ) : activeTab === 'history' ? (
+                                <History salesHistory={salesHistory} isAdmin={isAdmin} onExportData={handleExportData} />
+                            ) : (
+                                <Settings 
+                                    onExportData={handleExportData} 
+                                    onImportData={handleImportData} 
+                                    onResetInventory={handleResetInventory}
+                                    onClearHistory={handleClearHistory}
+                                    currentUser={currentUser} 
+                                    activationStatus={activationStatus}
+                                    onActivateApp={handleActivateApp}
+                                    users={users}
+                                    onUpdateUserProfile={handleUpdateUserProfile}
+                                    receiptConfig={receiptConfig}
+                                    onUpdateReceiptConfig={handleUpdateReceiptConfig}
+                                />
+                            )}
+                        </div>
+                    )}
+                </main>
+            </div>
 
             {isModalOpen && (
                 <div className="modal-overlay">
