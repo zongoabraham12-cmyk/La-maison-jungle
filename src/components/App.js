@@ -181,6 +181,32 @@ function App() {
         localStorage.setItem('currentUser', JSON.stringify(user))
     }
 
+    function handleRegister(role, username, password, question, answer) {
+        if (!username || !username.trim()) {
+            alert("Le nom d'utilisateur ne peut pas être vide.")
+            return false
+        }
+        
+        const usernameTrimmed = username.trim()
+        const isTaken = users.some(u => u.role !== role && u.username.toLowerCase() === usernameTrimmed.toLowerCase())
+        if (isTaken) {
+            alert("Ce nom d'utilisateur est déjà pris par un autre compte.")
+            return false
+        }
+
+        const registeredUser = { username: usernameTrimmed, password, role, question, answer }
+
+        setUsers(prev => prev.map(u => {
+            if (u.role === role) {
+                return registeredUser
+            }
+            return u
+        }))
+
+        handleLogin(registeredUser)
+        return true
+    }
+
     function handleLogout() {
         if (window.confirm("Voulez-vous vous déconnecter ?")) {
             setIsLoggedIn(false)
@@ -371,7 +397,7 @@ function App() {
     }
 
     if (!isLoggedIn) {
-        return <Login onLogin={handleLogin} users={users} onUpdateUserProfile={handleUpdateUserProfile} />
+        return <Login onLogin={handleLogin} users={users} onUpdateUserProfile={handleUpdateUserProfile} onRegister={handleRegister} />
     }
 
     return (

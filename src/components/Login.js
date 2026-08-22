@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
-function Login({ onLogin, users, onUpdateUserProfile }) {
+function Login({ onLogin, users, onUpdateUserProfile, onRegister }) {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const [mode, setMode] = useState('login') // 'login', or 'recovery'
+    const [mode, setMode] = useState('login') // 'login', 'recovery', or 'register'
     
     // Recovery states
     const [recoveryUsername, setRecoveryUsername] = useState('')
@@ -14,8 +14,36 @@ function Login({ onLogin, users, onUpdateUserProfile }) {
     const [newPassword, setNewPassword] = useState('')
     const [confirmNewPassword, setConfirmNewPassword] = useState('')
     
+    // Register states
+    const [registerRole, setRegisterRole] = useState('admin')
+    const [registerUsername, setRegisterUsername] = useState('')
+    const [registerPassword, setRegisterPassword] = useState('')
+    const [registerQuestion, setRegisterQuestion] = useState("Nom de votre premier animal de compagnie ?")
+    const [registerAnswer, setRegisterAnswer] = useState('')
+    const [showRegisterPassword, setShowRegisterPassword] = useState(false)
+    
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+
+    function handleRegisterSubmit(e) {
+        e.preventDefault()
+        if (registerPassword.length < 4) {
+            setError('Le mot de passe doit contenir au moins 4 caractères.')
+            return
+        }
+        if (!registerQuestion.trim() || !registerAnswer.trim()) {
+            setError('Veuillez renseigner la question de sécurité et sa réponse.')
+            return
+        }
+        const isRegistered = onRegister(registerRole, registerUsername, registerPassword, registerQuestion.trim(), registerAnswer.trim())
+        if (isRegistered) {
+            setSuccess('Compte créé et connecté avec succès !')
+            setError('')
+            setRegisterUsername('')
+            setRegisterPassword('')
+            setRegisterAnswer('')
+        }
+    }
 
     function handleSubmit(e) {
         e.preventDefault()
@@ -253,7 +281,83 @@ function Login({ onLogin, users, onUpdateUserProfile }) {
                             </div>
                             <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>SE CONNECTER</button>
                         </form>
-                        <span className="forgot-link" onClick={() => toggleMode('recovery')}>Mot de passe oublié ?</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', gap: '10px', flexWrap: 'wrap' }}>
+                            <span className="forgot-link" style={{ margin: 0 }} onClick={() => toggleMode('recovery')}>Mot de passe oublié ?</span>
+                            <span className="forgot-link" style={{ margin: 0, color: 'var(--primary)', fontWeight: '700' }} onClick={() => toggleMode('register')}>Créer un compte</span>
+                        </div>
+                    </>
+                )}
+
+                {mode === 'register' && (
+                    <>
+                        <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600' }}>Créer un nouveau compte</p>
+                        <form onSubmit={handleRegisterSubmit}>
+                            <div className="login-input-group">
+                                <span className="material-icons input-icon">badge</span>
+                                <select 
+                                    className="login-input"
+                                    value={registerRole}
+                                    onChange={(e) => setRegisterRole(e.target.value)}
+                                    style={{ appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', paddingRight: '40px' }}
+                                >
+                                    <option value="admin">Administrateur (Gestion complète)</option>
+                                    <option value="cashier">Vendeur / Caissier (Ventes uniquement)</option>
+                                </select>
+                                <span className="material-icons" style={{ position: 'absolute', right: '15px', top: '15px', pointerEvents: 'none', color: '#999' }}>arrow_drop_down</span>
+                            </div>
+                            <div className="login-input-group">
+                                <span className="material-icons input-icon">person</span>
+                                <input 
+                                    className="login-input"
+                                    type="text" 
+                                    placeholder="Nom d'utilisateur" 
+                                    value={registerUsername}
+                                    onChange={(e) => setRegisterUsername(e.target.value)}
+                                    required
+                                    autoComplete="username"
+                                />
+                            </div>
+                            <div className="login-input-group">
+                                <span className="material-icons input-icon">lock</span>
+                                <input 
+                                    className="login-input"
+                                    type={showRegisterPassword ? "text" : "password"} 
+                                    placeholder="Mot de passe" 
+                                    value={registerPassword}
+                                    onChange={(e) => setRegisterPassword(e.target.value)}
+                                    required
+                                    autoComplete="new-password"
+                                    spellCheck="false"
+                                />
+                                <span className="material-icons password-toggle" onClick={() => setShowRegisterPassword(!showRegisterPassword)}>
+                                    {showRegisterPassword ? 'visibility_off' : 'visibility'}
+                                </span>
+                            </div>
+                            <div className="login-input-group">
+                                <span className="material-icons input-icon">help_outline</span>
+                                <input 
+                                    className="login-input"
+                                    type="text" 
+                                    placeholder="Question de sécurité" 
+                                    value={registerQuestion}
+                                    onChange={(e) => setRegisterQuestion(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="login-input-group">
+                                <span className="material-icons input-icon">edit</span>
+                                <input 
+                                    className="login-input"
+                                    type="text" 
+                                    placeholder="Réponse à la question" 
+                                    value={registerAnswer}
+                                    onChange={(e) => setRegisterAnswer(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>CRÉER LE COMPTE</button>
+                        </form>
+                        <span className="forgot-link" onClick={() => toggleMode('login')}>Retour à la connexion</span>
                     </>
                 )}
 
