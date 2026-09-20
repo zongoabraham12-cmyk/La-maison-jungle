@@ -43,7 +43,7 @@ function Sidebar({ activeTab, setActiveTab, isAdmin, onLogout, currentUser, onIn
                 {/* Session Active */}
                 {currentUser && (
                     <div className="sidebar-session">
-                        <span className="material-icons" style={{ fontSize: '18px', color: 'var(--primary-light)' }}>person</span>
+                        <span className="material-icons notranslate" translate="no" style={{ fontSize: '18px', color: 'var(--primary-light)' }}>person</span>
                         <div className="session-info">
                             <span className="session-name">{currentUser.username}</span>
                             <span className="session-role">{currentUser.role === 'admin' ? 'Administrateur' : 'Caissier'}</span>
@@ -62,7 +62,7 @@ function Sidebar({ activeTab, setActiveTab, isAdmin, onLogout, currentUser, onIn
                                 setSidebarOpen(false) // Ferme la sidebar sur mobile après sélection
                             }}
                         >
-                            <span className="material-icons nav-icon">{t.icon}</span>
+                            <span className="material-icons nav-icon notranslate" translate="no">{t.icon}</span>
                             <span className="nav-label">{t.label}</span>
                         </button>
                     ))}
@@ -72,13 +72,13 @@ function Sidebar({ activeTab, setActiveTab, isAdmin, onLogout, currentUser, onIn
                 <div className="sidebar-footer">
                     {showInstallButton && (
                         <button onClick={onInstall} className="footer-btn install-btn">
-                            <span className="material-icons">download</span>
+                            <span className="material-icons notranslate" translate="no">download</span>
                             <span>INSTALLER L'APP</span>
                         </button>
                     )}
                     
                     <button onClick={onLogout} className="footer-btn logout-btn">
-                        <span className="material-icons">logout</span>
+                        <span className="material-icons notranslate" translate="no">logout</span>
                         <span>DÉCONNEXION</span>
                     </button>
 

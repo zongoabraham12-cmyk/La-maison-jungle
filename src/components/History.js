@@ -170,55 +170,57 @@ function History({ salesHistory, isAdmin, onExportData }) {
                 </div>
             ) : (
                 <div className="glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table className="pro-table">
-                        <thead style={{ background: 'rgba(0,0,0,0.02)' }}>
-                            <tr>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Ticket / Date</th>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Articles</th>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Client</th>
-                                <th style={{ padding: '15px', textAlign: 'right' }}>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredSales.map(sale => (
-                                <tr key={sale.id}>
-                                    <td style={{ padding: '15px', fontSize: '0.9rem' }}>
-                                        <div style={{ fontWeight: '700' }}>#{sale.id}</div>
-                                        <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>{sale.date}</div>
-                                        {sale.cashier && (
-                                            <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                                <span className="material-icons" style={{ fontSize: '12px' }}>person</span>
-                                                {sale.cashier}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td style={{ padding: '15px' }}>
-                                        {sale.items.map(item => (
-                                            <span key={item.id} style={{ display: 'block', fontSize: '0.85rem' }}>
-                                                {item.amount}x {item.name}
-                                            </span>
-                                        ))}
-                                    </td>
-                                    <td style={{ padding: '15px' }}>
-                                        {sale.customerName 
-                                            ? <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{sale.customerName}</span>
-                                            : <span style={{ color: '#ccc', fontSize: '0.8rem' }}>—</span>
-                                        }
-                                    </td>
-                                    <td style={{ padding: '15px', textAlign: 'right' }}>
-                                        <div style={{ fontWeight: '800', color: 'var(--primary)' }}>
-                                            {sale.total.toLocaleString('fr-FR')} FCFA
-                                        </div>
-                                        {isAdmin && (
-                                            <div style={{ fontSize: '0.78rem', color: '#2e7d32', fontWeight: '600', marginTop: '2px' }}>
-                                                Bénéfice: {(sale.totalProfit || 0).toLocaleString('fr-FR')} FCFA
-                                            </div>
-                                        )}
-                                    </td>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <table className="pro-table" style={{ minWidth: '550px' }}>
+                            <thead style={{ background: 'rgba(0,0,0,0.02)' }}>
+                                <tr>
+                                    <th style={{ padding: '15px', textAlign: 'left', minWidth: '130px' }}>Ticket / Date</th>
+                                    <th style={{ padding: '15px', textAlign: 'left', minWidth: '180px' }}>Articles</th>
+                                    <th style={{ padding: '15px', textAlign: 'left', minWidth: '110px' }}>Client</th>
+                                    <th style={{ padding: '15px', textAlign: 'right', minWidth: '130px' }}>Total</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {filteredSales.map(sale => (
+                                    <tr key={sale.id}>
+                                        <td style={{ padding: '15px', fontSize: '0.9rem' }}>
+                                            <div style={{ fontWeight: '700' }}>#{sale.id}</div>
+                                            <div style={{ opacity: 0.6, fontSize: '0.8rem' }}>{sale.date}</div>
+                                            {sale.cashier && (
+                                                <div style={{ color: '#888', fontSize: '0.78rem', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                    <span className="material-icons notranslate" translate="no" style={{ fontSize: '12px' }}>person</span>
+                                                    {sale.cashier}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td style={{ padding: '15px' }}>
+                                            {sale.items.map(item => (
+                                                <span key={item.id} style={{ display: 'block', fontSize: '0.85rem' }}>
+                                                    {item.amount}x {item.name}
+                                                </span>
+                                            ))}
+                                        </td>
+                                        <td style={{ padding: '15px' }}>
+                                            {sale.customerName 
+                                                ? <span style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{sale.customerName}</span>
+                                                : <span style={{ color: '#ccc', fontSize: '0.8rem' }}>—</span>
+                                            }
+                                        </td>
+                                        <td style={{ padding: '15px', textAlign: 'right' }}>
+                                            <div style={{ fontWeight: '800', color: 'var(--primary)' }}>
+                                                {sale.total.toLocaleString('fr-FR')} FCFA
+                                            </div>
+                                            {isAdmin && (
+                                                <div style={{ fontSize: '0.78rem', color: '#2e7d32', fontWeight: '600', marginTop: '2px' }}>
+                                                    Bénéfice: {(sale.totalProfit || 0).toLocaleString('fr-FR')} FCFA
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>

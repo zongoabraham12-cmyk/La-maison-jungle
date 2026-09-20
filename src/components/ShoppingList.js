@@ -51,7 +51,7 @@ function ShoppingList({ plantList, cart, updateCart }) {
                                 OFFRE
                             </div>
                         )}
-                        <h3 style={{ margin: '0 0 10px 0', color: 'var(--primary)' }}>{plant.name}</h3>
+                        <h3 style={{ margin: '0 0 10px 0', color: 'var(--primary)', paddingRight: plant.isSpecialOffer ? '50px' : '0', wordBreak: 'break-word' }}>{plant.name}</h3>
                         <p style={{ margin: '5px 0', fontSize: '1.2rem', fontWeight: '700' }}>{plant.price} FCFA</p>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
                             <span style={{ 

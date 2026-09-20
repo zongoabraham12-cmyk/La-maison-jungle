@@ -101,15 +101,15 @@ function Inventory({ plants, updatePlants, onAddClick, isAdmin, onUpdateProduct,
                             {/* Alerte stock bas */}
                             {plant.stock <= 5 && (
                                 <div style={{ 
-                                    position: 'absolute', top: 0, left: 0, right: 0, 
                                     background: plant.stock === 0 ? '#c62828' : '#e65100', 
-                                    color: 'white', fontSize: '0.7rem', fontWeight: '700', 
-                                    padding: '4px 12px', textAlign: 'center', letterSpacing: '1px' 
+                                    color: 'white', fontSize: '0.72rem', fontWeight: '700', 
+                                    padding: '6px 12px', textAlign: 'center', letterSpacing: '0.5px',
+                                    borderRadius: '12px', marginBottom: '8px'
                                 }}>
                                     {plant.stock === 0 ? '⚠️ RUPTURE DE STOCK' : '⚠️ STOCK BAS'}
                                 </div>
                             )}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: plant.stock <= 5 ? '22px' : '0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
                                     <h3 style={{ margin: 0, color: 'var(--primary)', fontSize: '1.15rem', textTransform: 'capitalize' }}>{plant.name}</h3>
                                     {plant.category && <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '2px', textTransform: 'uppercase' }}>{plant.category}</div>}

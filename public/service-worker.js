@@ -1,13 +1,11 @@
-const CACHE_NAME = 'ventepros-cache-v3';
+const CACHE_NAME = 'ventepros-cache-v4';
 
-// Stratégie réseau d'abord : essaie le réseau, revient au cache si hors-ligne
+// Pré-mise en cache des ressources critiques au moment de l'installation
 self.addEventListener('install', event => {
-  // Force le nouveau service worker à prendre le contrôle immédiatement
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-  // Supprime les anciens caches
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -20,15 +18,42 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Ignorer les requêtes non-GET et les extensions Chrome
   if (event.request.method !== 'GET') return;
   if (event.request.url.startsWith('chrome-extension://')) return;
 
+  const url = event.request.url;
+  const isFontOrIcon = url.includes('fonts.googleapis.com') || 
+                       url.includes('fonts.gstatic.com') ||
+                       url.endsWith('.woff2') || 
+                       url.endsWith('.woff') || 
+                       url.endsWith('.ttf');
+
+  // Pour les polices et icônes : stratégie CACHE FIRST pour un rendu immédiat sans clignotement ni déformation
+  if (isFontOrIcon) {
+    event.respondWith(
+      caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then(response => {
+          if (response && (response.status === 200 || response.type === 'opaque')) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Pour les autres requêtes : Réseau d'abord avec repli sur le cache
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Mettre en cache la réponse fraîche
-        if (response && response.status === 200) {
+        if (response && (response.status === 200 || response.type === 'opaque')) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseClone);
@@ -37,10 +62,8 @@ self.addEventListener('fetch', event => {
         return response;
       })
       .catch(() => {
-        // Si pas de réseau, utiliser le cache
         return caches.match(event.request).then(cachedResponse => {
           if (cachedResponse) return cachedResponse;
-          // Retourner index.html pour les navigations (Single Page App)
           if (event.request.mode === 'navigate') {
             return caches.match('/index.html');
           }
