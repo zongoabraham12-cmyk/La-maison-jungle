@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Sidebar({ activeTab, setActiveTab, isAdmin, onLogout, currentUser, onInstall, showInstallButton, sidebarOpen, setSidebarOpen }) {
+function Sidebar({ activeTab, setActiveTab, isAdmin, onLogout, currentUser, onInstall, showInstallButton, sidebarOpen, setSidebarOpen, activationStatus, onOpenPaymentModal }) {
     const tabs = [
         { id: 'dashboard', label: 'TABLEAU DE BORD', icon: 'space_dashboard', visible: true },
         { id: 'sales', label: 'CAISSE (VENTES)', icon: 'shopping_cart', visible: true },
@@ -48,6 +48,47 @@ function Sidebar({ activeTab, setActiveTab, isAdmin, onLogout, currentUser, onIn
                             <span className="session-name">{currentUser.username}</span>
                             <span className="session-role">{currentUser.role === 'admin' ? 'Administrateur' : 'Caissier'}</span>
                         </div>
+                    </div>
+                )}
+
+                {/* Statut Abonnement & Bouton Paiement Money Fusion */}
+                {activationStatus && (
+                    <div style={{ margin: '10px 15px 15px 15px', background: 'rgba(255,255,255,0.06)', borderRadius: '14px', padding: '10px 12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Licence</span>
+                            <span style={{ 
+                                fontSize: '0.72rem', 
+                                fontWeight: '800', 
+                                color: activationStatus.isLifetime ? '#4ade80' : activationStatus.isSubscribed ? '#38bdf8' : '#facc15' 
+                            }}>
+                                {activationStatus.planLabel}
+                            </span>
+                        </div>
+                        {onOpenPaymentModal && (
+                            <button 
+                                type="button"
+                                onClick={onOpenPaymentModal}
+                                style={{ 
+                                    background: 'linear-gradient(135deg, var(--primary) 0%, #00a8a8 100%)', 
+                                    color: 'white', 
+                                    border: 'none', 
+                                    padding: '7px 10px', 
+                                    borderRadius: '10px', 
+                                    fontSize: '0.75rem', 
+                                    fontWeight: '800', 
+                                    cursor: 'pointer', 
+                                    width: '100%', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center', 
+                                    gap: '6px',
+                                    boxShadow: '0 4px 12px rgba(0,139,139,0.3)'
+                                }}
+                            >
+                                <span className="material-icons" style={{ fontSize: '14px' }}>payments</span>
+                                <span>Payer (5 000 FCFA)</span>
+                            </button>
+                        )}
                     </div>
                 )}
 

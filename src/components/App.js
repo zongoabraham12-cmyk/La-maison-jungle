@@ -8,9 +8,28 @@ import History from './History'
 import Receipt from './Receipt'
 import Login from './Login'
 import Settings from './Settings'
+import PaymentModal from './PaymentModal'
+import { getOrCreateDeviceId, verifyLicenseKey } from '../utils/license'
+import { getSubscriptionStatus, grantMonthlyAccess } from '../utils/moneyFusion'
 
 function App() {
     const [deferredPrompt, setDeferredPrompt] = useState(null)
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+
+    // Détection automatique du retour après un paiement réussi sur Money Fusion
+    useEffect(() => {
+        try {
+            const urlParams = new URLSearchParams(window.location.search)
+            if (urlParams.get('payment') === 'success') {
+                grantMonthlyAccess(30)
+                setActivationStatus(getSubscriptionStatus())
+                alert("🎉 Félicitations ! Votre paiement a été validé avec succès. Votre abonnement VENTE PROS est actif pour 30 jours !")
+                window.history.replaceState({}, document.title, window.location.pathname)
+            }
+        } catch (e) {
+            console.error("Erreur vérification retour paiement:", e)
+        }
+    }, [])
 
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
@@ -246,50 +265,21 @@ function App() {
         return true
     }
 
-    // Gestion de la licence d'essai de 30 jours
-    const [activationStatus, setActivationStatus] = useState(() => {
-        try {
-            const LICENSE_KEY = "VP-ACTIVATION-2026-OK"
-            const isActivated = localStorage.getItem('app_activated') === 'true'
-            
-            let trialStart = localStorage.getItem('trial_start')
-            if (!trialStart) {
-                trialStart = new Date().toISOString()
-                localStorage.setItem('trial_start', trialStart)
-            }
-            
-            const startDate = new Date(trialStart)
-            const today = new Date()
-            const diffTime = today - startDate
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-            
-            const daysLeft = Math.max(0, 7 - diffDays)
-            const isExpired = daysLeft <= 0 && !isActivated
-            
-            return {
-                isActivated,
-                daysLeft,
-                isExpired,
-                licenseKey: LICENSE_KEY
-            }
-        } catch (e) {
-            console.error("Error checking activation status:", e)
-            return { isActivated: false, daysLeft: 7, isExpired: false, licenseKey: "VP-ACTIVATION-2026-OK" }
-        }
-    })
+    // Gestion unifiée de l'abonnement mensuel (5 000 FCFA), de l'essai gratuit (7j) et de la licence
+    const [activationStatus, setActivationStatus] = useState(() => getSubscriptionStatus())
 
     function handleActivateApp(key) {
-        if (key.trim() === activationStatus.licenseKey) {
+        if (!key || !key.trim()) {
+            alert("Veuillez saisir une clé d'activation.")
+            return false
+        }
+        if (verifyLicenseKey(activationStatus.deviceId, key.trim())) {
             localStorage.setItem('app_activated', 'true')
-            setActivationStatus(prev => ({
-                ...prev,
-                isActivated: true,
-                isExpired: false
-            }))
-            alert("✅ Activation réussie ! Merci pour votre confiance.")
+            setActivationStatus(getSubscriptionStatus())
+            alert("✅ Activation réussie ! Votre licence VENTE PROS est débloquée.")
             return true
         } else {
-            alert("❌ Clé d'activation invalide. Veuillez réessayer.")
+            alert("❌ Clé d'activation invalide pour cet appareil. Veuillez vérifier avec votre fournisseur.")
             return false
         }
     }
@@ -362,35 +352,72 @@ function App() {
     if (activationStatus.isExpired) {
         return (
             <div className="login-overlay">
-                <div className="glass-card login-card animate-fade" style={{ maxWidth: '500px' }}>
+                <div className="glass-card login-card animate-fade" style={{ maxWidth: '520px' }}>
                     <div style={{ marginBottom: '20px' }}>
-                        <span className="material-icons" style={{ fontSize: '64px', color: '#e74c3c' }}>warning</span>
+                        <span className="material-icons notranslate" translate="no" style={{ fontSize: '64px', color: '#e74c3c' }}>warning</span>
                     </div>
                     <h1 style={{ color: '#e74c3c', marginBottom: '10px', fontSize: '1.8rem', fontWeight: '900' }}>ESSAI EXPIRÉ</h1>
-                    <p style={{ color: '#666', marginBottom: '30px', fontWeight: '600', lineHeight: '1.6' }}>
-                        Votre période d'essai gratuite de 1 semaine (7 jours) est terminée. 
-                        Veuillez contacter le fournisseur de l'application pour acquérir une licence définitive et débloquer vos données.
+                    <p style={{ color: '#666', marginBottom: '20px', fontWeight: '600', lineHeight: '1.6' }}>
+                        Votre période d'essai gratuite de 7 jours est terminée. 
+                        Renouvelez votre accès par Mobile Money (5 000 FCFA/mois) ou contactez le support.
                     </p>
+
+                    {/* Bouton Paiement Money Fusion 5000 FCFA */}
+                    <button 
+                        type="button"
+                        onClick={() => setIsPaymentModalOpen(true)}
+                        className="btn-primary" 
+                        style={{ width: '100%', padding: '16px', fontSize: '0.95rem', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '18px', background: 'linear-gradient(135deg, var(--primary) 0%, #00a8a8 100%)', boxShadow: '0 8px 20px rgba(0,139,139,0.3)', borderRadius: '18px' }}
+                    >
+                        <span className="material-icons">payments</span>
+                        ⚡ PAYER PAR MOBILE MONEY (5 000 FCFA)
+                    </button>
+
+                    <div style={{ background: 'rgba(0, 139, 139, 0.08)', border: '1px solid rgba(0, 139, 139, 0.2)', padding: '15px', borderRadius: '16px', marginBottom: '25px', textAlign: 'center' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '5px' }}>Votre Code Machine Unique :</span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                            <strong style={{ fontSize: '1.3rem', letterSpacing: '2px', color: 'var(--primary)' }}>{activationStatus.deviceId}</strong>
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(activationStatus.deviceId);
+                                    alert("✅ Code Machine copié !");
+                                }}
+                                style={{ padding: '6px 12px', fontSize: '0.75rem', background: 'var(--primary)', color: 'white', borderRadius: '8px' }}
+                            >
+                                Copier
+                            </button>
+                        </div>
+                    </div>
+
                     <form onSubmit={(e) => {
                         e.preventDefault()
                         const data = new FormData(e.target)
                         handleActivateApp(data.get('key'))
                     }}>
                         <div className="login-input-group" style={{ position: 'relative', marginBottom: '20px' }}>
-                            <span className="material-icons input-icon" style={{ position: 'absolute', left: '20px', top: '15px', color: 'var(--primary)' }}>vpn_key</span>
+                            <span className="material-icons notranslate input-icon" translate="no" style={{ position: 'absolute', left: '20px', top: '15px', color: 'var(--primary)' }}>vpn_key</span>
                             <input 
                                 className="login-input" 
                                 name="key" 
-                                placeholder="Clé d'activation" 
+                                placeholder="J'ai une clé d'activation (ex: KEY-...)" 
                                 required 
                                 autoComplete="off" 
                                 style={{ width: '100%', padding: '15px 15px 15px 50px', border: '1px solid #ccc', borderRadius: '18px', background: 'rgba(255,255,255,0.8)' }}
                             />
                         </div>
-                        <button className="btn-primary" style={{ width: '100%', padding: '18px', background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)', boxShadow: '0 8px 20px rgba(231, 76, 60, 0.3)', marginTop: '10px' }}>
-                            ACTIVER L'APPLICATION
+                        <button className="btn-primary" style={{ width: '100%', padding: '16px', background: '#0f172a', borderRadius: '18px', fontWeight: '700' }}>
+                            ACTIVER AVEC LA CLÉ
                         </button>
                     </form>
+
+                    <PaymentModal 
+                        isOpen={isPaymentModalOpen}
+                        onClose={() => setIsPaymentModalOpen(false)}
+                        subStatus={activationStatus}
+                        onRefreshStatus={() => setActivationStatus(getSubscriptionStatus())}
+                        onActivateKey={handleActivateApp}
+                    />
                 </div>
             </div>
         )
@@ -412,6 +439,8 @@ function App() {
                 showInstallButton={!!deferredPrompt}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
+                activationStatus={activationStatus}
+                onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
             />
 
             <div className="content-layout">
@@ -463,6 +492,7 @@ function App() {
                                             onPayment={handlePayment} 
                                             customerName={customerName}
                                             setCustomerName={setCustomerName}
+                                            plants={plants}
                                         />
                                     </div>
                                     <div className="list-container" style={{ flex: 1, minWidth: '300px' }}>
@@ -549,6 +579,15 @@ function App() {
                 isOpen={isReceiptOpen} 
                 onClose={handleCloseReceipt}
                 receiptConfig={receiptConfig}
+            />
+
+            {/* Modal de Paiement Money Fusion (5 000 FCFA / mois) & Licence */}
+            <PaymentModal 
+                isOpen={isPaymentModalOpen}
+                onClose={() => setIsPaymentModalOpen(false)}
+                subStatus={activationStatus}
+                onRefreshStatus={() => setActivationStatus(getSubscriptionStatus())}
+                onActivateKey={handleActivateApp}
             />
         </div>
     )

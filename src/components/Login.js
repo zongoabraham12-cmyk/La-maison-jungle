@@ -281,7 +281,23 @@ function Login({ onLogin, users, onUpdateUserProfile, onRegister }) {
                             </div>
                             <button className="btn-primary" style={{ width: '100%', padding: '18px' }}>SE CONNECTER</button>
                         </form>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', gap: '10px', flexWrap: 'wrap' }}>
+
+                        {/* Identifiants démo pour validation Money Fusion */}
+                        <div style={{ marginTop: '20px', background: 'rgba(0,139,139,0.06)', border: '1px solid rgba(0,139,139,0.2)', padding: '12px 14px', borderRadius: '14px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '0.82rem', color: '#334155', marginBottom: '8px' }}>
+                                <strong>Compte Démo / Équipe de Validation :</strong><br/>
+                                Nom : <code style={{ color: 'var(--primary)', fontWeight: '700' }}>admin</code> &nbsp;|&nbsp; Mot de passe : <code style={{ color: 'var(--primary)', fontWeight: '700' }}>admin</code>
+                            </div>
+                            <button 
+                                type="button" 
+                                onClick={() => { setUsername('admin'); setPassword('admin'); }}
+                                style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '6px 14px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer' }}
+                            >
+                                ⚡ Remplir automatiquement
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', gap: '10px', flexWrap: 'wrap' }}>
                             <span className="forgot-link" style={{ margin: 0 }} onClick={() => toggleMode('recovery')}>Mot de passe oublié ?</span>
                             <span className="forgot-link" style={{ margin: 0, color: 'var(--primary)', fontWeight: '700' }} onClick={() => toggleMode('register')}>Créer un compte</span>
                         </div>

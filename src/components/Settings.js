@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { generateLicenseKey } from '../utils/license'
 
 function Settings({ onExportData, onImportData, onResetInventory, onClearHistory, currentUser, activationStatus, onActivateApp, users, onUpdateUserProfile, receiptConfig, onUpdateReceiptConfig }) {
     const [localConfig, setLocalConfig] = useState(receiptConfig || {
@@ -8,6 +9,9 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
         storeSlogan: 'Expert en Solutions de Vente',
         footerMessage: 'Merci de votre confiance ! À bientôt chez nous.'
     })
+    const [clientDeviceId, setClientDeviceId] = useState('')
+    const [generatedKey, setGeneratedKey] = useState('')
+    const [copiedState, setCopiedState] = useState('')
 
     const adminUser = (users || []).find(u => u.role === 'admin') || { username: 'admin', password: 'admin' }
     const cashierUser = (users || []).find(u => u.role === 'cashier') || { username: 'vendeuse', password: 'vendeuse' }
@@ -39,6 +43,39 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                     <span className="material-icons">vpn_key</span>
                     Statut de la Licence
                 </h3>
+
+                {/* Code Machine de cet appareil */}
+                {activationStatus.deviceId && (
+                    <div style={{ background: '#f3e5f5', border: '1px solid #ce93d8', borderRadius: '16px', padding: '15px 20px', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#7b1fa2', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            <span className="material-icons" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '5px' }}>computer</span>
+                            Code Machine de cet Appareil
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                            <code style={{ fontSize: '1.3rem', fontWeight: '800', color: '#4a148c', letterSpacing: '2px', background: 'white', padding: '8px 16px', borderRadius: '10px', border: '2px solid #ce93d8' }}>
+                                {activationStatus.deviceId}
+                            </code>
+                            <button
+                                className="btn-secondary"
+                                style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                onClick={() => {
+                                    navigator.clipboard.writeText(activationStatus.deviceId)
+                                    setCopiedState('device')
+                                    setTimeout(() => setCopiedState(''), 2000)
+                                }}
+                            >
+                                <span className="material-icons" style={{ fontSize: '16px' }}>
+                                    {copiedState === 'device' ? 'check' : 'content_copy'}
+                                </span>
+                                {copiedState === 'device' ? 'Copié !' : 'Copier'}
+                            </button>
+                        </div>
+                        <p style={{ color: '#7b1fa2', fontSize: '0.78rem', margin: 0 }}>
+                            Communiquez ce code à votre fournisseur pour obtenir votre clé d'activation personnelle.
+                        </p>
+                    </div>
+                )}
+
                 {activationStatus.isActivated ? (
                     <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '15px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
                         <span className="material-icons" style={{ fontSize: '24px' }}>check_circle</span>
@@ -72,6 +109,78 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                     </div>
                 )}
             </div>
+
+            {/* Section Générateur de Clés — Admin uniquement */}
+            {currentUser && currentUser.role === 'admin' && (
+                <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px', border: '2px solid #7b1fa2' }}>
+                    <h3 style={{ margin: '0 0 10px 0', color: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
+                        <span className="material-icons">admin_panel_settings</span>
+                        Générateur de Clés Client
+                    </h3>
+                    <p style={{ color: '#666', fontSize: '0.85rem', margin: '0 0 20px 0' }}>
+                        Le client vous envoie son <strong>Code Machine</strong> → Entrez-le ici → Copiez la clé générée → Envoyez-la au client.
+                        Cette clé ne fonctionnera <strong>que sur son appareil</strong>.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div className="input-group" style={{ marginBottom: 0 }}>
+                            <span className="material-icons">computer</span>
+                            <input
+                                placeholder="Code Machine du client (ex: VP-1A2B-3C4D)"
+                                value={clientDeviceId}
+                                onChange={(e) => {
+                                    setClientDeviceId(e.target.value.toUpperCase())
+                                    setGeneratedKey('')
+                                }}
+                                style={{ width: '100%', textTransform: 'uppercase', letterSpacing: '1px' }}
+                            />
+                        </div>
+                        <button
+                            className="btn-primary"
+                            style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            onClick={() => {
+                                const trimmed = clientDeviceId.trim()
+                                if (!trimmed) return
+                                const key = generateLicenseKey(trimmed)
+                                setGeneratedKey(key)
+                                setCopiedState('')
+                            }}
+                        >
+                            <span className="material-icons" style={{ fontSize: '18px' }}>key</span>
+                            Générer la Clé
+                        </button>
+
+                        {generatedKey && (
+                            <div style={{ background: '#e8f5e9', border: '2px solid #4caf50', borderRadius: '16px', padding: '15px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <div style={{ fontSize: '0.8rem', color: '#2e7d32', fontWeight: '600', textTransform: 'uppercase' }}>
+                                    Clé générée pour {clientDeviceId}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                    <code style={{ fontSize: '1.3rem', fontWeight: '800', color: '#1b5e20', letterSpacing: '2px', background: 'white', padding: '8px 16px', borderRadius: '10px', border: '2px solid #4caf50' }}>
+                                        {generatedKey}
+                                    </code>
+                                    <button
+                                        className="btn-secondary"
+                                        style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(generatedKey)
+                                            setCopiedState('key')
+                                            setTimeout(() => setCopiedState(''), 2000)
+                                        }}
+                                    >
+                                        <span className="material-icons" style={{ fontSize: '16px' }}>
+                                            {copiedState === 'key' ? 'check' : 'content_copy'}
+                                        </span>
+                                        {copiedState === 'key' ? 'Copié !' : 'Copier la Clé'}
+                                    </button>
+                                </div>
+                                <p style={{ color: '#2e7d32', fontSize: '0.78rem', margin: 0 }}>
+                                    ✅ Envoyez cette clé au client. Elle ne fonctionnera que sur l'appareil avec le code <strong>{clientDeviceId}</strong>.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Section Personnalisation du Reçu */}
             <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
