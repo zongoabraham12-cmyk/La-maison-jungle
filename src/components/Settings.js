@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { generateLicenseKey } from '../utils/license'
+import { generateLicenseKey, getOrCreateDeviceId } from '../utils/license'
 
 function Settings({ onExportData, onImportData, onResetInventory, onClearHistory, currentUser, activationStatus, onActivateApp, users, onUpdateUserProfile, receiptConfig, onUpdateReceiptConfig }) {
     const [localConfig, setLocalConfig] = useState(receiptConfig || {
@@ -46,50 +46,64 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                 </h3>
 
                 {/* Code Machine de cet appareil */}
-                {activationStatus.deviceId && (
-                    <div style={{ background: '#f3e5f5', border: '1px solid #ce93d8', borderRadius: '16px', padding: '15px 20px', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#7b1fa2', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            <span className="material-icons" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '5px' }}>computer</span>
-                            Code Machine de cet Appareil
+                {(() => {
+                    const devId = activationStatus?.deviceId || getOrCreateDeviceId()
+                    return (
+                        <div style={{ background: '#f3e5f5', border: '1px solid #ce93d8', borderRadius: '16px', padding: '15px 20px', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div style={{ fontSize: '0.8rem', color: '#7b1fa2', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                <span className="material-icons" style={{ fontSize: '16px', verticalAlign: 'middle', marginRight: '5px' }}>computer</span>
+                                Code Machine de cet Appareil
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                <code style={{ fontSize: '1.3rem', fontWeight: '800', color: '#4a148c', letterSpacing: '2px', background: 'white', padding: '8px 16px', borderRadius: '10px', border: '2px solid #ce93d8' }}>
+                                    {devId}
+                                </code>
+                                <button
+                                    className="btn-secondary"
+                                    style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(devId)
+                                        setCopiedState('device')
+                                        setTimeout(() => setCopiedState(''), 2000)
+                                    }}
+                                >
+                                    <span className="material-icons" style={{ fontSize: '16px' }}>
+                                        {copiedState === 'device' ? 'check' : 'content_copy'}
+                                    </span>
+                                    {copiedState === 'device' ? 'Copié !' : 'Copier'}
+                                </button>
+                            </div>
+                            <p style={{ color: '#7b1fa2', fontSize: '0.78rem', margin: 0 }}>
+                                Communiquez ce code à votre fournisseur pour obtenir votre clé d'activation personnelle.
+                            </p>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                            <code style={{ fontSize: '1.3rem', fontWeight: '800', color: '#4a148c', letterSpacing: '2px', background: 'white', padding: '8px 16px', borderRadius: '10px', border: '2px solid #ce93d8' }}>
-                                {activationStatus.deviceId}
-                            </code>
-                            <button
-                                className="btn-secondary"
-                                style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-                                onClick={() => {
-                                    navigator.clipboard.writeText(activationStatus.deviceId)
-                                    setCopiedState('device')
-                                    setTimeout(() => setCopiedState(''), 2000)
-                                }}
-                            >
-                                <span className="material-icons" style={{ fontSize: '16px' }}>
-                                    {copiedState === 'device' ? 'check' : 'content_copy'}
-                                </span>
-                                {copiedState === 'device' ? 'Copié !' : 'Copier'}
-                            </button>
-                        </div>
-                        <p style={{ color: '#7b1fa2', fontSize: '0.78rem', margin: 0 }}>
-                            Communiquez ce code à votre fournisseur pour obtenir votre clé d'activation personnelle.
-                        </p>
-                    </div>
-                )}
+                    )
+                })()}
 
-                {activationStatus.isActivated ? (
+                {(activationStatus?.isLifetime || activationStatus?.isActivated || localStorage.getItem('app_activated') === 'true') ? (
                     <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '15px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
                         <span className="material-icons" style={{ fontSize: '24px' }}>check_circle</span>
-                        <span>VERSION ACTIVÉE DÉFINITIVEMENT</span>
+                        <div>
+                            <div>VERSION ACTIVÉE DÉFINITIVEMENT (À VIE)</div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: '500', color: '#1b5e20' }}>Cette application est débloquée sans limite de temps.</div>
+                        </div>
+                    </div>
+                ) : activationStatus?.isSubscribed ? (
+                    <div style={{ background: '#e0f2fe', color: '#0369a1', padding: '15px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
+                        <span className="material-icons" style={{ fontSize: '24px' }}>schedule</span>
+                        <div>
+                            <div>ABONNEMENT ACTIF : {activationStatus.subDaysLeft} JOURS RESTANTS</div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: '500', color: '#0369a1' }}>Expire le {activationStatus.subExpiryDate}</div>
+                        </div>
                     </div>
                 ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div style={{ background: '#fff3e0', color: '#e65100', padding: '15px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
                             <span className="material-icons" style={{ fontSize: '24px' }}>hourglass_empty</span>
-                            <span>VERSION D'ESSAI : {activationStatus.daysLeft} JOURS RESTANTS</span>
+                            <span>VERSION D'ESSAI : {activationStatus?.trialDaysLeft ?? activationStatus?.daysLeft ?? 0} JOURS RESTANTS</span>
                         </div>
                         <p style={{ color: '#666', fontSize: '0.85rem', margin: 0 }}>
-                            Saisissez la clé de licence définitive fournie pour débloquer l'application sans limite de temps.
+                            Saisissez la clé d'activation fournie pour prolonger ou débloquer votre accès.
                         </p>
                         <form 
                             onSubmit={(e) => {
@@ -111,9 +125,8 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                 )}
             </div>
 
-            {/* Section Générateur de Clés — Admin uniquement */}
-            {currentUser && currentUser.role === 'admin' && (
-                <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px', border: '2px solid #7b1fa2' }}>
+            {/* Section Générateur de Clés Client */}
+            <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px', border: '2px solid #7b1fa2' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
                         <span className="material-icons">admin_panel_settings</span>
                         Générateur de Clés Client (Abonnements & Licences)
@@ -268,7 +281,6 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                         )}
                     </div>
                 </div>
-            )}
 
             {/* Section Personnalisation du Reçu */}
             <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>

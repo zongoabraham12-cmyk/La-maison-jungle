@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ventepros-cache-v4';
+const CACHE_NAME = 'ventepros-cache-v5';
 
 // Pré-mise en cache des ressources critiques au moment de l'installation
 self.addEventListener('install', event => {
