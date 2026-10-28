@@ -273,13 +273,21 @@ function App() {
             alert("Veuillez saisir une clé d'activation.")
             return false
         }
-        if (verifyLicenseKey(activationStatus.deviceId, key.trim())) {
-            localStorage.setItem('app_activated', 'true')
-            setActivationStatus(getSubscriptionStatus())
-            alert("✅ Activation réussie ! Votre licence VENTE PROS est débloquée.")
-            return true
+        const result = verifyLicenseKey(activationStatus.deviceId, key.trim())
+        if (result && result.valid) {
+            if (result.type === 'LIFETIME') {
+                localStorage.setItem('app_activated', 'true')
+                setActivationStatus(getSubscriptionStatus())
+                alert("🎉 Activation réussie ! Votre licence VENTE PROS est débloquée à vie.")
+                return true
+            } else if (result.type === '1M' || result.type === '3M') {
+                grantMonthlyAccess(result.days)
+                setActivationStatus(getSubscriptionStatus())
+                alert(`🎉 Félicitations ! Votre abonnement VENTE PROS a été prolongé de ${result.days} jours avec succès !`)
+                return true
+            }
         } else {
-            alert("❌ Clé d'activation invalide pour cet appareil. Veuillez vérifier avec votre fournisseur.")
+            alert(`❌ ${result?.error || "Clé d'activation invalide pour cet appareil. Veuillez vérifier avec votre fournisseur."}`)
             return false
         }
     }

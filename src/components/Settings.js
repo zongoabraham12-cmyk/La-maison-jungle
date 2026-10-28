@@ -10,6 +10,7 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
         footerMessage: 'Merci de votre confiance ! À bientôt chez nous.'
     })
     const [clientDeviceId, setClientDeviceId] = useState('')
+    const [selectedPlan, setSelectedPlan] = useState('1M')
     const [generatedKey, setGeneratedKey] = useState('')
     const [copiedState, setCopiedState] = useState('')
 
@@ -115,13 +116,83 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                 <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px', border: '2px solid #7b1fa2' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.2rem' }}>
                         <span className="material-icons">admin_panel_settings</span>
-                        Générateur de Clés Client
+                        Générateur de Clés Client (Abonnements & Licences)
                     </h3>
                     <p style={{ color: '#666', fontSize: '0.85rem', margin: '0 0 20px 0' }}>
-                        Le client vous envoie son <strong>Code Machine</strong> → Entrez-le ici → Copiez la clé générée → Envoyez-la au client.
-                        Cette clé ne fonctionnera <strong>que sur son appareil</strong>.
+                        Le client vous envoie son <strong>Code Machine</strong> et son règlement → Choisissez la durée → Cliquez sur Générer → Envoyez la clé par WhatsApp.
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {/* Choix de la formule */}
+                        <div>
+                            <label style={{ fontSize: '0.85rem', fontWeight: '700', color: '#4a148c', display: 'block', marginBottom: '8px' }}>
+                                Type d'Abonnement à générer :
+                            </label>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedPlan('1M'); setGeneratedKey(''); }}
+                                    style={{
+                                        padding: '10px 18px',
+                                        borderRadius: '12px',
+                                        border: selectedPlan === '1M' ? '2px solid #2e7d32' : '1px solid #ccc',
+                                        background: selectedPlan === '1M' ? '#e8f5e9' : 'white',
+                                        color: selectedPlan === '1M' ? '#1b5e20' : '#444',
+                                        fontWeight: '700',
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <span className="material-icons" style={{ fontSize: '18px' }}>calendar_today</span>
+                                    1 Mois (+30 Jours)
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedPlan('3M'); setGeneratedKey(''); }}
+                                    style={{
+                                        padding: '10px 18px',
+                                        borderRadius: '12px',
+                                        border: selectedPlan === '3M' ? '2px solid #1565c0' : '1px solid #ccc',
+                                        background: selectedPlan === '3M' ? '#e3f2fd' : 'white',
+                                        color: selectedPlan === '3M' ? '#0d47a1' : '#444',
+                                        fontWeight: '700',
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <span className="material-icons" style={{ fontSize: '18px' }}>date_range</span>
+                                    3 Mois (+90 Jours)
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedPlan('LIFETIME'); setGeneratedKey(''); }}
+                                    style={{
+                                        padding: '10px 18px',
+                                        borderRadius: '12px',
+                                        border: selectedPlan === 'LIFETIME' ? '2px solid #7b1fa2' : '1px solid #ccc',
+                                        background: selectedPlan === 'LIFETIME' ? '#f3e5f5' : 'white',
+                                        color: selectedPlan === 'LIFETIME' ? '#4a148c' : '#777',
+                                        fontWeight: '700',
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}
+                                >
+                                    <span className="material-icons" style={{ fontSize: '18px' }}>lock_clock</span>
+                                    À vie (Secret / Admin)
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="input-group" style={{ marginBottom: 0 }}>
                             <span className="material-icons">computer</span>
                             <input
@@ -134,33 +205,34 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                                 style={{ width: '100%', textTransform: 'uppercase', letterSpacing: '1px' }}
                             />
                         </div>
+
                         <button
                             className="btn-primary"
                             style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px' }}
                             onClick={() => {
                                 const trimmed = clientDeviceId.trim()
-                                if (!trimmed) return
-                                const key = generateLicenseKey(trimmed)
+                                if (!trimmed) return alert("Veuillez saisir le Code Machine du client.")
+                                const key = generateLicenseKey(trimmed, selectedPlan)
                                 setGeneratedKey(key)
                                 setCopiedState('')
                             }}
                         >
                             <span className="material-icons" style={{ fontSize: '18px' }}>key</span>
-                            Générer la Clé
+                            Générer la Clé ({selectedPlan === '1M' ? '1 Mois' : selectedPlan === '3M' ? '3 Mois' : 'À vie'})
                         </button>
 
                         {generatedKey && (
-                            <div style={{ background: '#e8f5e9', border: '2px solid #4caf50', borderRadius: '16px', padding: '15px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <div style={{ fontSize: '0.8rem', color: '#2e7d32', fontWeight: '600', textTransform: 'uppercase' }}>
-                                    Clé générée pour {clientDeviceId}
+                            <div style={{ background: '#e8f5e9', border: '2px solid #4caf50', borderRadius: '16px', padding: '15px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div style={{ fontSize: '0.8rem', color: '#2e7d32', fontWeight: '700', textTransform: 'uppercase' }}>
+                                    Clé {selectedPlan === '1M' ? '1 Mois (+30 jours)' : selectedPlan === '3M' ? '3 Mois (+90 jours)' : 'À vie'} générée pour {clientDeviceId}
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                                    <code style={{ fontSize: '1.3rem', fontWeight: '800', color: '#1b5e20', letterSpacing: '2px', background: 'white', padding: '8px 16px', borderRadius: '10px', border: '2px solid #4caf50' }}>
+                                    <code style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1b5e20', letterSpacing: '2px', background: 'white', padding: '8px 16px', borderRadius: '10px', border: '2px solid #4caf50' }}>
                                         {generatedKey}
                                     </code>
                                     <button
                                         className="btn-secondary"
-                                        style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                                         onClick={() => {
                                             navigator.clipboard.writeText(generatedKey)
                                             setCopiedState('key')
@@ -170,11 +242,27 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
                                         <span className="material-icons" style={{ fontSize: '16px' }}>
                                             {copiedState === 'key' ? 'check' : 'content_copy'}
                                         </span>
-                                        {copiedState === 'key' ? 'Copié !' : 'Copier la Clé'}
+                                        {copiedState === 'key' ? 'Copié !' : 'Copier Clé'}
+                                    </button>
+                                    <button
+                                        className="btn-primary"
+                                        style={{ padding: '8px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px', background: '#25D366' }}
+                                        onClick={() => {
+                                            const durationText = selectedPlan === '1M' ? '1 Mois (30 jours)' : selectedPlan === '3M' ? '3 Mois (90 jours)' : 'Définitive (À vie)';
+                                            const message = `Bonjour ! Voici votre clé d'abonnement VENTE PROS (${durationText}) :\n\n🔑 *${generatedKey}*\n\nPour l'activer :\n1. Ouvrez l'application VENTE PROS\n2. Allez dans 'Abonnement'\n3. Collez votre clé et cliquez sur Valider.\n\nMerci pour votre confiance !`;
+                                            navigator.clipboard.writeText(message)
+                                            setCopiedState('whatsapp')
+                                            setTimeout(() => setCopiedState(''), 2000)
+                                        }}
+                                    >
+                                        <span className="material-icons" style={{ fontSize: '16px' }}>
+                                            {copiedState === 'whatsapp' ? 'check' : 'chat'}
+                                        </span>
+                                        {copiedState === 'whatsapp' ? 'Message Copié !' : 'Copier Message WhatsApp'}
                                     </button>
                                 </div>
                                 <p style={{ color: '#2e7d32', fontSize: '0.78rem', margin: 0 }}>
-                                    ✅ Envoyez cette clé au client. Elle ne fonctionnera que sur l'appareil avec le code <strong>{clientDeviceId}</strong>.
+                                    ✅ Cette clé est unique et ne fonctionnera <strong>que sur l'appareil {clientDeviceId}</strong>.
                                 </p>
                             </div>
                         )}
