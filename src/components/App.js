@@ -9,27 +9,14 @@ import Receipt from './Receipt'
 import Login from './Login'
 import Settings from './Settings'
 import PaymentModal from './PaymentModal'
-import { getOrCreateDeviceId, verifyLicenseKey } from '../utils/license'
-import { getSubscriptionStatus, grantMonthlyAccess } from '../utils/moneyFusion'
+import { verifyLicenseKey } from '../utils/license'
+import { getSubscriptionStatus } from '../utils/moneyFusion'
 
 function App() {
     const [deferredPrompt, setDeferredPrompt] = useState(null)
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
 
-    // Détection automatique du retour après un paiement réussi sur Money Fusion
-    useEffect(() => {
-        try {
-            const urlParams = new URLSearchParams(window.location.search)
-            if (urlParams.get('payment') === 'success') {
-                grantMonthlyAccess(30)
-                setActivationStatus(getSubscriptionStatus())
-                alert("🎉 Félicitations ! Votre paiement a été validé avec succès. Votre abonnement VENTE PROS est actif pour 30 jours !")
-                window.history.replaceState({}, document.title, window.location.pathname)
-            }
-        } catch (e) {
-            console.error("Erreur vérification retour paiement:", e)
-        }
-    }, [])
+
 
     useEffect(() => {
         const handleBeforeInstallPrompt = (e) => {
