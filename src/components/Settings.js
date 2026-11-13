@@ -90,139 +90,141 @@ function Settings({ onExportData, onImportData, onResetInventory, onClearHistory
             </div>
 
             {/* Section Générateur de Licences Clients (Admin uniquement) */}
-            <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px', border: '2px solid #7b1fa2' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
-                    <h3 style={{ margin: 0, color: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.25rem' }}>
-                        <span className="material-icons">local_offer</span>
-                        Générateur de Clés de Licence (À vie)
-                    </h3>
-                    <span style={{ background: '#f3e5f5', color: '#7b1fa2', padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800' }}>
-                        ESPACE VENDEUR
-                    </span>
-                </div>
-                <p style={{ color: '#666', fontSize: '0.85rem', margin: '0 0 18px 0', lineHeight: '1.5' }}>
-                    Générez des clés officielles prêtes à être vendues. Chaque clé est <strong>universelle</strong> et <strong>débloque l'application à vie</strong> sur l'appareil du client.
-                </p>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '15px' }}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                        {[1, 5, 10].map(qty => (
-                            <button
-                                key={qty}
-                                type="button"
-                                onClick={() => setBatchSize(qty)}
-                                style={{
-                                    padding: '8px 16px',
-                                    borderRadius: '10px',
-                                    border: batchSize === qty ? '2px solid #7b1fa2' : '1px solid #ccc',
-                                    background: batchSize === qty ? '#f3e5f5' : 'white',
-                                    color: batchSize === qty ? '#4a148c' : '#555',
-                                    fontWeight: '700',
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {qty} {qty > 1 ? 'Clés' : 'Clé'}
-                            </button>
-                        ))}
+            {currentUser && currentUser.role === 'admin' && (
+                <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px', border: '2px solid #7b1fa2' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+                        <h3 style={{ margin: 0, color: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.25rem' }}>
+                            <span className="material-icons">local_offer</span>
+                            Générateur de Clés de Licence (À vie)
+                        </h3>
+                        <span style={{ background: '#f3e5f5', color: '#7b1fa2', padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800' }}>
+                            ADMIN SEULEMENT
+                        </span>
                     </div>
+                    <p style={{ color: '#666', fontSize: '0.85rem', margin: '0 0 18px 0', lineHeight: '1.5' }}>
+                        Générez des clés officielles prêtes à être vendues. Chaque clé est <strong>universelle</strong> et <strong>débloque l'application à vie</strong> sur l'appareil du client.
+                    </p>
 
-                    <button
-                        type="button"
-                        onClick={handleGenerateBatch}
-                        className="btn-primary"
-                        style={{ padding: '10px 20px', background: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}
-                    >
-                        <span className="material-icons" style={{ fontSize: '18px' }}>bolt</span>
-                        Générer {batchSize} Licence{batchSize > 1 ? 's' : ''}
-                    </button>
-                </div>
-
-                {generatedKeys.length > 0 && (
-                    <div style={{ background: '#faf5ff', border: '2px solid #ce93d8', borderRadius: '18px', padding: '18px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#4a148c', textTransform: 'uppercase' }}>
-                                Clés générées prêtes à l'emploi ({generatedKeys.length})
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const allText = generatedKeys.map((k, i) => `Licence ${i + 1} : ${k}`).join('\n')
-                                    navigator.clipboard.writeText(allText)
-                                    setCopiedState('all')
-                                    setTimeout(() => setCopiedState(''), 2000)
-                                }}
-                                className="btn-secondary"
-                                style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
-                            >
-                                <span className="material-icons" style={{ fontSize: '15px' }}>
-                                    {copiedState === 'all' ? 'check' : 'content_copy'}
-                                </span>
-                                {copiedState === 'all' ? 'Tout copié !' : 'Copier tout le lot'}
-                            </button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {generatedKeys.map((key, index) => (
-                                <div 
-                                    key={key} 
-                                    style={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'space-between', 
-                                        background: 'white', 
-                                        border: '1px solid #e9d5ff', 
-                                        padding: '10px 14px', 
-                                        borderRadius: '12px', 
-                                        flexWrap: 'wrap', 
-                                        gap: '8px' 
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '15px' }}>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                            {[1, 5, 10].map(qty => (
+                                <button
+                                    key={qty}
+                                    type="button"
+                                    onClick={() => setBatchSize(qty)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '10px',
+                                        border: batchSize === qty ? '2px solid #7b1fa2' : '1px solid #ccc',
+                                        background: batchSize === qty ? '#f3e5f5' : 'white',
+                                        color: batchSize === qty ? '#4a148c' : '#555',
+                                        fontWeight: '700',
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer'
                                     }}
                                 >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <span style={{ fontSize: '0.75rem', color: '#7b1fa2', fontWeight: '800', width: '20px' }}>#{index + 1}</span>
-                                        <code style={{ fontSize: '1.05rem', fontWeight: '800', color: '#4a148c', letterSpacing: '1.5px' }}>
-                                            {key}
-                                        </code>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '6px' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(key)
-                                                setCopiedState(key)
-                                                setTimeout(() => setCopiedState(''), 2000)
-                                            }}
-                                            className="btn-secondary"
-                                            style={{ padding: '6px 10px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                        >
-                                            <span className="material-icons" style={{ fontSize: '14px' }}>
-                                                {copiedState === key ? 'check' : 'content_copy'}
-                                            </span>
-                                            {copiedState === key ? 'Copié' : 'Copier'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                const msg = `Bonjour ! Voici votre clé de licence définitive VENTE PROS (À vie) :\n\n🔑 *${key}*\n\nPour l'activer :\n1. Ouvrez l'application VENTE PROS\n2. Collez cette clé dans la fenêtre d'activation\n3. Cliquez sur Débloquer.\n\nVotre application sera utilisable à vie sans limite de temps. Merci pour votre confiance !`
-                                                navigator.clipboard.writeText(msg)
-                                                setCopiedState(`wa_${key}`)
-                                                setTimeout(() => setCopiedState(''), 2000)
-                                            }}
-                                            className="btn-primary"
-                                            style={{ padding: '6px 10px', fontSize: '0.72rem', background: '#25D366', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                        >
-                                            <span className="material-icons" style={{ fontSize: '14px' }}>
-                                                {copiedState === `wa_${key}` ? 'check' : 'chat'}
-                                            </span>
-                                            {copiedState === `wa_${key}` ? 'Message Copié !' : 'WhatsApp'}
-                                        </button>
-                                    </div>
-                                </div>
+                                    {qty} {qty > 1 ? 'Clés' : 'Clé'}
+                                </button>
                             ))}
                         </div>
+
+                        <button
+                            type="button"
+                            onClick={handleGenerateBatch}
+                            className="btn-primary"
+                            style={{ padding: '10px 20px', background: '#7b1fa2', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}
+                        >
+                            <span className="material-icons" style={{ fontSize: '18px' }}>bolt</span>
+                            Générer {batchSize} Licence{batchSize > 1 ? 's' : ''}
+                        </button>
                     </div>
-                )}
-            </div>
+
+                    {generatedKeys.length > 0 && (
+                        <div style={{ background: '#faf5ff', border: '2px solid #ce93d8', borderRadius: '18px', padding: '18px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#4a148c', textTransform: 'uppercase' }}>
+                                    Clés générées prêtes à l'emploi ({generatedKeys.length})
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const allText = generatedKeys.map((k, i) => `Licence ${i + 1} : ${k}`).join('\n')
+                                        navigator.clipboard.writeText(allText)
+                                        setCopiedState('all')
+                                        setTimeout(() => setCopiedState(''), 2000)
+                                    }}
+                                    className="btn-secondary"
+                                    style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                >
+                                    <span className="material-icons" style={{ fontSize: '15px' }}>
+                                        {copiedState === 'all' ? 'check' : 'content_copy'}
+                                    </span>
+                                    {copiedState === 'all' ? 'Tout copié !' : 'Copier tout le lot'}
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {generatedKeys.map((key, index) => (
+                                    <div 
+                                        key={key} 
+                                        style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'space-between', 
+                                            background: 'white', 
+                                            border: '1px solid #e9d5ff', 
+                                            padding: '10px 14px', 
+                                            borderRadius: '12px', 
+                                            flexWrap: 'wrap', 
+                                            gap: '8px' 
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <span style={{ fontSize: '0.75rem', color: '#7b1fa2', fontWeight: '800', width: '20px' }}>#{index + 1}</span>
+                                            <code style={{ fontSize: '1.05rem', fontWeight: '800', color: '#4a148c', letterSpacing: '1.5px' }}>
+                                                {key}
+                                            </code>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(key)
+                                                    setCopiedState(key)
+                                                    setTimeout(() => setCopiedState(''), 2000)
+                                                }}
+                                                className="btn-secondary"
+                                                style={{ padding: '6px 10px', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                            >
+                                                <span className="material-icons" style={{ fontSize: '14px' }}>
+                                                    {copiedState === key ? 'check' : 'content_copy'}
+                                                </span>
+                                                {copiedState === key ? 'Copié' : 'Copier'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const msg = `Bonjour ! Voici votre clé de licence définitive VENTE PROS (À vie) :\n\n🔑 *${key}*\n\nPour l'activer :\n1. Ouvrez l'application VENTE PROS\n2. Collez cette clé dans la fenêtre d'activation\n3. Cliquez sur Débloquer.\n\nVotre application sera utilisable à vie sans limite de temps. Merci pour votre confiance !`
+                                                    navigator.clipboard.writeText(msg)
+                                                    setCopiedState(`wa_${key}`)
+                                                    setTimeout(() => setCopiedState(''), 2000)
+                                                }}
+                                                className="btn-primary"
+                                                style={{ padding: '6px 10px', fontSize: '0.72rem', background: '#25D366', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                            >
+                                                <span className="material-icons" style={{ fontSize: '14px' }}>
+                                                    {copiedState === `wa_${key}` ? 'check' : 'chat'}
+                                                </span>
+                                                {copiedState === `wa_${key}` ? 'Message Copié !' : 'WhatsApp'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Section Personnalisation du Reçu */}
             <div className="glass-card" style={{ marginBottom: '30px', padding: '25px 30px' }}>
