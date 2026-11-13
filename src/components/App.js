@@ -265,29 +265,23 @@ function App() {
         return true
     }
 
-    // Gestion unifiée de l'abonnement mensuel (5 000 FCFA), de l'essai gratuit (7j) et de la licence
+    // Gestion unifiée de la licence définitive à vie et de l'essai gratuit (7j)
     const [activationStatus, setActivationStatus] = useState(() => getSubscriptionStatus())
 
     function handleActivateApp(key) {
         if (!key || !key.trim()) {
-            alert("Veuillez saisir une clé d'activation.")
+            alert("Veuillez saisir une clé de licence.")
             return false
         }
-        const result = verifyLicenseKey(activationStatus.deviceId, key.trim())
+        const result = verifyLicenseKey(key.trim())
         if (result && result.valid) {
-            if (result.type === 'LIFETIME') {
-                localStorage.setItem('app_activated', 'true')
-                setActivationStatus(getSubscriptionStatus())
-                alert("🎉 Activation réussie ! Votre licence VENTE PROS est débloquée à vie.")
-                return true
-            } else if (result.type === '1M' || result.type === '3M') {
-                grantMonthlyAccess(result.days)
-                setActivationStatus(getSubscriptionStatus())
-                alert(`🎉 Félicitations ! Votre abonnement VENTE PROS a été prolongé de ${result.days} jours avec succès !`)
-                return true
-            }
+            localStorage.setItem('app_activated', 'true')
+            setActivationStatus(getSubscriptionStatus())
+            setIsPaymentModalOpen(false)
+            alert("🎉 Félicitations ! Votre licence VENTE PROS est débloquée à vie.")
+            return true
         } else {
-            alert(`❌ ${result?.error || "Clé d'activation invalide pour cet appareil. Veuillez vérifier avec votre fournisseur."}`)
+            alert(`❌ ${result?.error || "Clé de licence invalide. Veuillez vérifier votre saisie ou contacter le 56-96-35-58."}`)
             return false
         }
     }
@@ -360,72 +354,73 @@ function App() {
     if (activationStatus.isExpired) {
         return (
             <div className="login-overlay">
-                <div className="glass-card login-card animate-fade" style={{ maxWidth: '520px' }}>
-                    <div style={{ marginBottom: '20px' }}>
-                        <span className="material-icons notranslate" translate="no" style={{ fontSize: '64px', color: '#e74c3c' }}>warning</span>
+                <div className="glass-card login-card animate-fade" style={{ maxWidth: '520px', padding: '30px' }}>
+                    <div style={{ marginBottom: '15px', textAlign: 'center' }}>
+                        <span className="material-icons notranslate" translate="no" style={{ fontSize: '64px', color: '#e74c3c' }}>lock</span>
                     </div>
-                    <h1 style={{ color: '#e74c3c', marginBottom: '10px', fontSize: '1.8rem', fontWeight: '900' }}>ESSAI EXPIRÉ</h1>
-                    <p style={{ color: '#666', marginBottom: '20px', fontWeight: '600', lineHeight: '1.6' }}>
-                        Votre période d'essai gratuite de 7 jours est terminée. 
-                        Renouvelez votre accès par Mobile Money (5 000 FCFA/mois) ou contactez le support.
+                    <h1 style={{ color: '#0f172a', marginBottom: '8px', fontSize: '1.6rem', fontWeight: '900', textAlign: 'center' }}>
+                        PÉRIODE D'ESSAI TERMINÉE
+                    </h1>
+                    <p style={{ color: '#666', marginBottom: '22px', fontSize: '0.9rem', lineHeight: '1.5', textAlign: 'center' }}>
+                        Vos 7 jours d'essai gratuit sont terminés. Pour continuer à utiliser VENTE PROS sans interruption, veuillez activer votre licence définitive.
                     </p>
 
-                    {/* Bouton Paiement Money Fusion 5000 FCFA */}
-                    <button 
-                        type="button"
-                        onClick={() => setIsPaymentModalOpen(true)}
-                        className="btn-primary" 
-                        style={{ width: '100%', padding: '16px', fontSize: '0.95rem', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '18px', background: 'linear-gradient(135deg, var(--primary) 0%, #00a8a8 100%)', boxShadow: '0 8px 20px rgba(0,139,139,0.3)', borderRadius: '18px' }}
-                    >
-                        <span className="material-icons">payments</span>
-                        ⚡ PAYER PAR MOBILE MONEY (5 000 FCFA)
-                    </button>
-
-                    <div style={{ background: 'rgba(0, 139, 139, 0.08)', border: '1px solid rgba(0, 139, 139, 0.2)', padding: '15px', borderRadius: '16px', marginBottom: '25px', textAlign: 'center' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#666', display: 'block', marginBottom: '5px' }}>Votre Code Machine Unique :</span>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                            <strong style={{ fontSize: '1.3rem', letterSpacing: '2px', color: 'var(--primary)' }}>{activationStatus.deviceId}</strong>
-                            <button 
-                                type="button"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(activationStatus.deviceId);
-                                    alert("✅ Code Machine copié !");
-                                }}
-                                style={{ padding: '6px 12px', fontSize: '0.75rem', background: 'var(--primary)', color: 'white', borderRadius: '8px' }}
-                            >
-                                Copier
-                            </button>
+                    {/* Contact WhatsApp pour commander la clé */}
+                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                            <span className="material-icons" style={{ color: '#16a34a', fontSize: '20px' }}>phone_in_talk</span>
+                            <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#166534' }}>
+                                WhatsApp / Orange : 56-96-35-58
+                            </span>
                         </div>
+                        <p style={{ margin: '0 0 10px 0', fontSize: '0.8rem', color: '#15803d', lineHeight: '1.4' }}>
+                            Contactez le support pour commander votre clé de licence définitive à vie :
+                        </p>
+                        <a
+                            href="https://wa.me/2250756963558?text=Bonjour%20!%20Je%20souhaite%20acheter%20la%20cl%C3%A9%20de%20licence%20d%C3%A9finitive%20pour%20VENTE%20PROS."
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                background: '#25D366',
+                                color: 'white',
+                                textDecoration: 'none',
+                                padding: '12px',
+                                borderRadius: '12px',
+                                fontWeight: '800',
+                                fontSize: '0.88rem',
+                                boxShadow: '0 4px 12px rgba(37,211,102,0.3)'
+                            }}
+                        >
+                            <span className="material-icons" style={{ fontSize: '18px' }}>chat</span>
+                            Commander ma Clé sur WhatsApp
+                        </a>
                     </div>
 
+                    {/* Saisie de la clé */}
                     <form onSubmit={(e) => {
                         e.preventDefault()
                         const data = new FormData(e.target)
                         handleActivateApp(data.get('key'))
                     }}>
-                        <div className="login-input-group" style={{ position: 'relative', marginBottom: '20px' }}>
-                            <span className="material-icons notranslate input-icon" translate="no" style={{ position: 'absolute', left: '20px', top: '15px', color: 'var(--primary)' }}>vpn_key</span>
+                        <div className="login-input-group" style={{ position: 'relative', marginBottom: '16px' }}>
+                            <span className="material-icons notranslate input-icon" translate="no" style={{ position: 'absolute', left: '16px', top: '14px', color: 'var(--primary)' }}>vpn_key</span>
                             <input 
                                 className="login-input" 
                                 name="key" 
-                                placeholder="J'ai une clé d'activation (ex: KEY-...)" 
+                                placeholder="Entrez votre clé (ex: VP-ABCD-1234-EF56)" 
                                 required 
                                 autoComplete="off" 
-                                style={{ width: '100%', padding: '15px 15px 15px 50px', border: '1px solid #ccc', borderRadius: '18px', background: 'rgba(255,255,255,0.8)' }}
+                                style={{ width: '100%', padding: '14px 14px 14px 48px', border: '1px solid #ccc', borderRadius: '14px', background: 'white', textTransform: 'uppercase', letterSpacing: '1px' }}
                             />
                         </div>
-                        <button className="btn-primary" style={{ width: '100%', padding: '16px', background: '#0f172a', borderRadius: '18px', fontWeight: '700' }}>
-                            ACTIVER AVEC LA CLÉ
+                        <button className="btn-primary" style={{ width: '100%', padding: '15px', borderRadius: '14px', fontWeight: '800', fontSize: '0.9rem' }}>
+                            DÉBLOQUER L'APPLICATION
                         </button>
                     </form>
-
-                    <PaymentModal 
-                        isOpen={isPaymentModalOpen}
-                        onClose={() => setIsPaymentModalOpen(false)}
-                        subStatus={activationStatus}
-                        onRefreshStatus={() => setActivationStatus(getSubscriptionStatus())}
-                        onActivateKey={handleActivateApp}
-                    />
                 </div>
             </div>
         )

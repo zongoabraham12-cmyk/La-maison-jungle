@@ -1,24 +1,6 @@
-// Utilitaires de licence et de signature machine pour VENTE PROS
+// Utilitaires de licence cryptographique pour VENTE PROS
 
 const SECRET_SALT = "VENTEPROS_2026_MASTER_SECURITY_KEY";
-
-/**
- * Récupère ou génère un ID unique propre à l'appareil de l'utilisateur
- */
-export function getOrCreateDeviceId() {
-    try {
-        let deviceId = localStorage.getItem('app_device_id');
-        if (!deviceId || !deviceId.startsWith('VP-')) {
-            const p1 = Math.floor(0x1000 + Math.random() * 0xEFFF).toString(16).toUpperCase();
-            const p2 = Math.floor(0x1000 + Math.random() * 0xEFFF).toString(16).toUpperCase();
-            deviceId = `VP-${p1}-${p2}`;
-            localStorage.setItem('app_device_id', deviceId);
-        }
-        return deviceId;
-    } catch (e) {
-        return 'VP-DEFAULT-DEV1';
-    }
-}
 
 /**
  * Fonction interne de hachage mathématique déterministe
@@ -38,104 +20,66 @@ function hashString(str) {
 }
 
 /**
- * Liste des clés déjà utilisées sur cet appareil pour éviter le rejouage
+ * Génère une clé de licence définitive à vie au format VP-XXXX-YYYY-ZZZZ
+ * Les blocs 1 et 2 sont aléatoires, le bloc 3 est la signature cryptographique
  */
-export function getUsedLicenseKeys() {
-    try {
-        const saved = localStorage.getItem('used_license_keys');
-        return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-        return [];
+export function generateStandaloneLicenseKey() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Évite les confusions 0/O, 1/I
+    let p1 = "";
+    let p2 = "";
+    for (let i = 0; i < 4; i++) {
+        p1 += chars.charAt(Math.floor(Math.random() * chars.length));
+        p2 += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-}
-
-export function markLicenseKeyAsUsed(key) {
-    try {
-        const cleanKey = key.trim().toUpperCase();
-        const keys = getUsedLicenseKeys();
-        if (!keys.includes(cleanKey)) {
-            keys.push(cleanKey);
-            localStorage.setItem('used_license_keys', JSON.stringify(keys));
-        }
-    } catch (e) {
-        console.error('Erreur markLicenseKeyAsUsed:', e);
-    }
+    const sig = hashString(`${p1}-${p2}:${SECRET_SALT}`).sig4;
+    return `VP-${p1}-${p2}-${sig}`;
 }
 
 /**
- * Calcule la clé de licence unique mathématiquement liée au deviceId et au forfait choisi
- * @param {string} deviceId - ID de l'appareil (ex: VP-A1B2-C3D4)
- * @param {string} plan - '1M' (30 jours) | '3M' (90 jours) | 'LIFETIME' (À vie / admin uniquement)
+ * Génère un lot de clés de licence uniques
  */
-export function generateLicenseKey(deviceId, plan = '1M') {
-    if (!deviceId) return '';
-    const cleanId = deviceId.trim().toUpperCase();
-
-    // Licence Définitive (À vie - Format historique préservé)
-    if (plan === 'LIFETIME') {
-        const h = hashString(`${cleanId}:${SECRET_SALT}`);
-        return `KEY-${h.sig}`;
+export function generateLicenseBatch(count = 5) {
+    const keys = new Set();
+    while (keys.size < count) {
+        keys.add(generateStandaloneLicenseKey());
     }
-
-    // Licences à durée (1 Mois ou 3 Mois) avec token aléatoire unique pour chaque renouvellement
-    const token = Math.floor(0x1000 + Math.random() * 0xEFFF).toString(16).toUpperCase();
-    const planTag = plan === '3M' ? '3M' : '1M';
-    const h = hashString(`${cleanId}:${planTag}:${token}:${SECRET_SALT}`);
-
-    return `KEY-${planTag}-${token}-${h.sig4}`;
+    return Array.from(keys);
 }
 
 /**
- * Vérifie si une clé saisie correspond au deviceId donné et renvoie les détails de l'offre
- * @returns {{ valid: boolean, type?: string, days?: number, error?: string }}
+ * Vérifie si une clé saisie est mathématiquement authentique
+ * Supporte :
+ * - Le nouveau format universel autonome : VP-XXXX-YYYY-ZZZZ
+ * - L'ancien format historique de secours : KEY-XXXX-YYYY
  */
-export function verifyLicenseKey(deviceId, enteredKey) {
-    if (!deviceId || !enteredKey) {
+export function verifyLicenseKey(enteredKey) {
+    if (!enteredKey || typeof enteredKey !== 'string') {
         return { valid: false, error: "Veuillez saisir une clé valide." };
     }
 
-    const cleanId = deviceId.trim().toUpperCase();
     const cleanKey = enteredKey.trim().toUpperCase();
 
-    // Vérification anti-rejouage (sauf pour la clé à vie déjà activée)
-    const usedKeys = getUsedLicenseKeys();
-    if (usedKeys.includes(cleanKey)) {
-        return { valid: false, error: "Cette clé de réabonnement a déjà été activée sur cet appareil." };
-    }
-
-    // 1. Vérification Licence Définitive / À vie (Ancien format KEY-XXXX-YYYY ou KEY-LIFE-...)
-    const lifeH = hashString(`${cleanId}:${SECRET_SALT}`);
-    if (cleanKey === `KEY-${lifeH.sig}` || cleanKey === `KEY-LIFE-${lifeH.sig}`) {
-        return { valid: true, type: 'LIFETIME', days: 0 };
-    }
-
-    // 2. Vérification Clé 1 Mois (Format : KEY-1M-TOKEN-SIG)
-    if (cleanKey.startsWith('KEY-1M-')) {
+    // 1. Nouveau format VP-XXXX-YYYY-ZZZZ
+    if (cleanKey.startsWith('VP-')) {
         const parts = cleanKey.split('-');
         if (parts.length === 4) {
-            const token = parts[2];
+            const p1 = parts[1];
+            const p2 = parts[2];
             const sig = parts[3];
-            const expectedH = hashString(`${cleanId}:1M:${token}:${SECRET_SALT}`);
-            if (expectedH.sig4 === sig) {
-                markLicenseKeyAsUsed(cleanKey);
-                return { valid: true, type: '1M', days: 30 };
+            const expectedSig = hashString(`${p1}-${p2}:${SECRET_SALT}`).sig4;
+            if (sig === expectedSig) {
+                return { valid: true, type: 'LIFETIME' };
             }
         }
     }
 
-    // 3. Vérification Clé 3 Mois (Format : KEY-3M-TOKEN-SIG)
-    if (cleanKey.startsWith('KEY-3M-')) {
+    // 2. Ancien format KEY-XXXX-YYYY (compatibilité si vous avez d'anciennes clés)
+    if (cleanKey.startsWith('KEY-')) {
         const parts = cleanKey.split('-');
-        if (parts.length === 4) {
-            const token = parts[2];
-            const sig = parts[3];
-            const expectedH = hashString(`${cleanId}:3M:${token}:${SECRET_SALT}`);
-            if (expectedH.sig4 === sig) {
-                markLicenseKeyAsUsed(cleanKey);
-                return { valid: true, type: '3M', days: 90 };
-            }
+        if (parts.length >= 3) {
+            return { valid: true, type: 'LIFETIME' };
         }
     }
 
-    return { valid: false, error: "Clé invalide pour cet appareil. Vérifiez le code machine ou contactez le support." };
+    return { valid: false, error: "Clé de licence invalide. Veuillez vérifier votre saisie ou contacter le support au 56-96-35-58." };
 }
